@@ -3,7 +3,7 @@
 <suite name="GitHub REST API Test Suite" verbose="1">
     <test name="GitHub API Tests">
         <packages>
-            <package name="org.trendyolautomation.tests"/>
+            <package name="com.apitests.github.tests"/>
         </packages>
     </test>
 </suite>
