@@ -1,7 +1,14 @@
 package com.apitests.github.specs;
 
-/**
- * Reusable REST Assured response specifications (status code, content type).
- */
+import io.restassured.builder.ResponseSpecBuilder;
+import io.restassured.filter.log.LogDetail;
+import io.restassured.specification.ResponseSpecification;
+
 public class ResponseSpecs {
+
+    public static ResponseSpecification logBody() {
+        return new ResponseSpecBuilder()
+                .log(LogDetail.BODY)
+                .build();
+    }
 }

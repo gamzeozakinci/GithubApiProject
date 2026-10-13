@@ -1,5 +1,6 @@
 package com.apitests.github.tests;
 
+import com.apitests.github.specs.ResponseSpecs;
 import org.testng.annotations.Test;
 import com.apitests.github.base.BaseTest;
 import com.apitests.github.constants.Endpoints;
@@ -19,7 +20,7 @@ public class AuthenticationTests extends BaseTest {
                 .when()
                 .get(Endpoints.USER)
                 .then()
-                .log().body()
+                .spec(ResponseSpecs.logBody())
                 .statusCode(200);
     }
 
@@ -31,7 +32,7 @@ public class AuthenticationTests extends BaseTest {
                 .when()
                 .get(Endpoints.USER)
                 .then()
-                .log().body()
+                .spec(ResponseSpecs.logBody())
                 .statusCode(401);
     }
 
@@ -44,7 +45,7 @@ public class AuthenticationTests extends BaseTest {
                 .when()
                 .get(Endpoints.USER)
                 .then()
-                .log().body()
+                .spec(ResponseSpecs.logBody())
                 .statusCode(401);
     }
 
@@ -56,7 +57,7 @@ public class AuthenticationTests extends BaseTest {
                 .when()
                 .get("/emojis")
                 .then()
-                .log().body()
+                .spec(ResponseSpecs.logBody())
                 .statusCode(200);
     }
 
@@ -68,7 +69,7 @@ public class AuthenticationTests extends BaseTest {
                 .when()
                 .get(Endpoints.USER)
                 .then()
-                .log().body()
+                .spec(ResponseSpecs.logBody())
                 .statusCode(200)
                 .body(matchesJsonSchemaInClasspath("schemas/user-schema.json"));
     }
