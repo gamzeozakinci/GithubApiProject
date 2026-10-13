@@ -55,7 +55,7 @@ public class AuthenticationTests extends BaseTest {
         given()
                 .spec(RequestSpecs.publicSpec())
                 .when()
-                .get("/emojis")
+                .get(Endpoints.EMOJIS)
                 .then()
                 .spec(ResponseSpecs.logBody())
                 .statusCode(200);

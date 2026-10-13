@@ -1,8 +1,14 @@
 package com.apitests.github.tests;
 
+import com.apitests.github.constants.Endpoints;
+import com.apitests.github.specs.RequestSpecs;
+import com.apitests.github.specs.ResponseSpecs;
 import org.testng.annotations.Test;
 import com.apitests.github.base.BaseTest;
 import com.apitests.github.constants.TestGroups;
+
+import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.requestSpecification;
 
 /**
  * Covers US-03. Test cases: U001 .. U008.
@@ -12,6 +18,13 @@ public class UserTests extends BaseTest {
     @Test(enabled = false, description = "U001 - Get existing user",
             groups = {TestGroups.SMOKE, TestGroups.REGRESSION})
     public void U001_getExistingUser() {
+        given()
+                .spec(RequestSpecs.authSpec())
+                .when()
+                .get(Endpoints.USER_BY_NAME)
+                .then()
+                .spec(ResponseSpecs.logBody())
+                .statusCode(200);
     }
 
     @Test(enabled = false, description = "U002 - Get non-existent user",
