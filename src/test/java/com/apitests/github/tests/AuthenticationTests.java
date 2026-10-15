@@ -9,6 +9,7 @@ import com.apitests.github.specs.RequestSpecs;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
+import static org.hamcrest.Matchers.equalTo;
 
 public class AuthenticationTests extends BaseTest {
 
@@ -33,7 +34,9 @@ public class AuthenticationTests extends BaseTest {
                 .get(Endpoints.USER)
                 .then()
                 .spec(ResponseSpecs.logBody())
-                .statusCode(401);
+                .statusCode(401)
+                .body("message", equalTo("Requires authentication"));
+
     }
 
     @Test(description = "A003 - Request with invalid token",
@@ -46,7 +49,8 @@ public class AuthenticationTests extends BaseTest {
                 .get(Endpoints.USER)
                 .then()
                 .spec(ResponseSpecs.logBody())
-                .statusCode(401);
+                .statusCode(401)
+                .body("message", equalTo("Bad credentials"));
     }
 
     @Test(description = "A004 - Public resource works without token",
