@@ -6,9 +6,9 @@ import io.restassured.specification.ResponseSpecification;
 
 public class ResponseSpecs {
 
-    public static ResponseSpecification logBody() {
+    public static ResponseSpecification logAll() {
         return new ResponseSpecBuilder()
-                .log(LogDetail.BODY)
+                .log(LogDetail.ALL)
                 .build();
     }
 }

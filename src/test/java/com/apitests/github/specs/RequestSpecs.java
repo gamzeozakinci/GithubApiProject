@@ -12,9 +12,15 @@ public class RequestSpecs {
     }
 
     public static RequestSpecification authSpec() {
+        String token = System.getenv("GITHUB_TOKEN");
+
+        if (token == null || token.isBlank()) {
+            throw new IllegalStateException("GITHUB_TOKEN environment variable is not set");
+        }
+
         return new RequestSpecBuilder()
                 .setBaseUri("https://api.github.com")
-                .addHeader("Authorization", "Bearer " + System.getenv("GITHUB_TOKEN"))
+                .addHeader("Authorization", "Bearer " + token)
                 .build();
     }
 }
