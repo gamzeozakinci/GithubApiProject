@@ -13,7 +13,7 @@ API test automation suite for the [GitHub REST API](https://docs.github.com/en/r
 | REST Assured 5.5.6 | HTTP client and response assertions |
 | TestNG 7.11.0 | Test framework |
 | Jackson | Request and response (de)serialization |
-| Allure | Test reporting |
+| TestNG reports | Test reporting (Surefire HTML and XML reports) |
 
 ## Project structure
 
@@ -33,7 +33,6 @@ src/test/java/com/apitests/github/
 src/test/resources/
 ├── testng.xml     Suite definition
 ├── config.properties
-├── allure.properties
 └── schemas/       JSON schemas for response validation
 ```
 
@@ -85,7 +84,7 @@ Non-secret settings (base URI, API version) live in `src/test/resources/config.p
 mvn clean test
 ```
 
-Test results are written to `target/allure-results`.
+Test reports are written to `target/surefire-reports`.
 
 ## Notes
 

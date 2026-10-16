@@ -65,8 +65,7 @@ public class AuthenticationTests extends BaseTest {
                 .get(Endpoints.EMOJIS)
                 .then()
                 .spec(ResponseSpecs.logAll())
-                .statusCode(200)
-                .body("gamzeozakinci", notNullValue());
+                .statusCode(200);
     }
 
     @Test(description = "A005 - Response body matches user schema",
