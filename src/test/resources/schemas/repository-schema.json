@@ -2,6 +2,78 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Repository",
   "type": "object",
-  "required": [],
-  "properties": {}
+  "required": [
+    "id",
+    "node_id",
+    "name",
+    "full_name",
+    "private",
+    "owner",
+    "html_url",
+    "fork",
+    "created_at",
+    "default_branch",
+    "visibility",
+    "archived"
+  ],
+  "properties": {
+    "id": {
+      "type": "integer"
+    },
+    "node_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "full_name": {
+      "type": "string"
+    },
+    "private": {
+      "type": "boolean"
+    },
+    "owner": {
+      "type": "object",
+      "required": [
+        "login",
+        "id",
+        "type"
+      ],
+      "properties": {
+        "login": {
+          "type": "string"
+        },
+        "id": {
+          "type": "integer"
+        },
+        "type": {
+          "type": "string"
+        }
+      }
+    },
+    "html_url": {
+      "type": "string"
+    },
+    "description": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "fork": {
+      "type": "boolean"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "default_branch": {
+      "type": "string"
+    },
+    "visibility": {
+      "type": "string"
+    },
+    "archived": {
+      "type": "boolean"
+    }
+  }
 }

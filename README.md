@@ -86,7 +86,53 @@ mvn clean test
 
 Test reports are written to `target/surefire-reports`.
 
-## Notes
+## Rate limits
 
-- Each test run creates its own repository with a unique name and removes it afterwards, so tests do not depend on existing account data.
-- GitHub rate limits apply: 5000 requests per hour when authenticated, and 30 requests per minute for search.
+The GitHub REST API limits how many requests a client can send. The suite stays well below these limits, but they matter when you run it repeatedly. Source: [Rate limits for the REST API](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api).
+
+### Primary limits (per hour)
+
+| Request type | Limit |
+|--------------|-------|
+| Unauthenticated | 60 requests per hour, per IP address |
+| Authenticated with a personal access token | 5,000 requests per hour |
+
+Tests that use `RequestSpecs.publicSpec()` send unauthenticated requests and count against the 60 requests per hour of your IP address. Tests that use `RequestSpecs.authSpec()` use the 5,000 requests of the token.
+
+### Response headers
+
+Every response reports the current state of the limit:
+
+| Header | Meaning |
+|--------|---------|
+| `x-ratelimit-limit` | Maximum number of requests allowed per hour |
+| `x-ratelimit-remaining` | Requests left in the current window |
+| `x-ratelimit-used` | Requests made in the current window |
+| `x-ratelimit-reset` | When the window resets, in UTC epoch seconds |
+| `x-ratelimit-resource` | The rate limit resource the request counted against |
+
+`RateLimitTests` verifies that these headers are returned. GitHub notes that the values can differ slightly between responses, so tests compare them in a relative way (for example "used increases between two calls") instead of checking an exact number.
+
+`GET /rate_limit` returns the current status of all limits. It does not count against the primary limit.
+
+### Secondary limits
+
+GitHub also applies secondary limits to protect the service. Documented examples:
+
+- No more than 100 concurrent requests.
+- No more than 900 points per minute for a REST endpoint (most `GET` requests cost 1 point, most `POST`, `PATCH`, `PUT` and `DELETE` requests cost 5 points).
+- No more than 80 content-creating requests per minute and 500 per hour.
+
+Creating and deleting repositories, issues and comments are write requests, so the suite runs its tests sequentially and does not use parallel execution.
+
+### Search limits
+
+According to the [Search API documentation](https://docs.github.com/en/rest/search/search), most search endpoints allow 30 requests per minute for authenticated requests. Unauthenticated search requests are limited to 10 per minute.
+
+### When a limit is exceeded
+
+GitHub responds with `403` or `429`:
+
+- If `x-ratelimit-remaining` is `0`, wait until the time in `x-ratelimit-reset`.
+- If a `retry-after` header is present, wait that many seconds.
+- Do not keep sending requests while rate limited, GitHub may block the client.
