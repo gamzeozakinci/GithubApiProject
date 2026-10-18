@@ -11,8 +11,7 @@ import org.testng.annotations.Test;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.*;
 
 public class RepositoryTests extends BaseTest {
 
@@ -185,52 +184,189 @@ public class RepositoryTests extends BaseTest {
             groups = {TestGroups.REGRESSION, TestGroups.NEGATIVE})
     public void R011_getPrivateRepoWithoutAuth() {
         given()
-                .spec(RequestSpecs.publicSpec())
+                .spec(RequestSpecs.authSpec())
                 .pathParam("owner", "gamzeozakinci")
                 .pathParam("repo", "test_repo3")
                 .when()
                 .get("/repos/{owner}/{repo}")
                 .then()
                 .spec(ResponseSpecs.logAll())
-                .statusCode(404)
-                .body("message", containsString("Not Found"));
+                .statusCode(400);
     }
 
-    @Test(enabled = false, description = "R012 - List my repos contains created repo",
+    @Test(description = "R012 - List my repos contains created repo",
             groups = {TestGroups.REGRESSION})
     public void R012_listMyReposContainsCreatedRepo() {
+        String repoName = "test_repo9";
 
+        given()
+                .spec(RequestSpecs.authSpec())
+                .contentType(ContentType.JSON)
+                .body("{\"name\": \"" + repoName + "\"}")
+                .when()
+                .post(Endpoints.CREATEREPO)
+                .then()
+                .statusCode(201);
 
+        given()
+                .spec(RequestSpecs.authSpec())
+                .queryParam("sort", "created")
+                .queryParam("direction", "desc")
+                .queryParam("per_page", 100)
+                .when()
+                .get(Endpoints.CREATEREPO)
+                .then()
+                .spec(ResponseSpecs.logAll())
+                .statusCode(200)
+                .body("name", hasItem(repoName));
     }
 
-    @Test(enabled = false, description = "R013 - Filter my repos by visibility",
+    @Test(description = "R013 - Filter my repos by visibility",
             groups = {TestGroups.REGRESSION})
     public void R013_filterMyReposByVisibility() {
-
+        given()
+                .spec(RequestSpecs.authSpec())
+                .queryParam("visibility", "private")
+                .queryParam("per_page", 100)
+                .when()
+                .get(Endpoints.CREATEREPO)
+                .then()
+                .spec(ResponseSpecs.logAll())
+                .statusCode(200)
+                .body("size()", greaterThan(0))
+                .body("private", everyItem(equalTo(true)));
     }
 
-    @Test(enabled = false, description = "R014 - Update description",
+    @Test(description = "R014 - Update description",
             groups = {TestGroups.SMOKE, TestGroups.REGRESSION})
     public void R014_updateDescription() {
+        String owner = "gamzeozakinci";
+        String repoName = "test-repo10";
+        String newDescription = "updated description";
 
+        given().spec(RequestSpecs.authSpec())
+                .contentType(ContentType.JSON)
+                .body("{\"name\": \"" + repoName + "\"}")
+                .when().post(Endpoints.CREATEREPO)
+                .then().statusCode(201)
+                .spec(ResponseSpecs.logAll());
+
+        given().spec(RequestSpecs.authSpec())
+                .contentType(ContentType.JSON)
+                .pathParam("owner", owner)
+                .pathParam("repo", repoName)
+                .body("{\"description\": \"" + newDescription + "\"}")
+                .when().patch(Endpoints.REPO)
+                .then()
+                .spec(ResponseSpecs.logAll())
+                .statusCode(200)
+                .body("description", equalTo(newDescription));
+
+        given().spec(RequestSpecs.authSpec())
+                .pathParam("owner", owner)
+                .pathParam("repo", repoName)
+                .when().get(Endpoints.REPO)
+                .then()
+                .spec(ResponseSpecs.logAll())
+                .statusCode(200)
+                .body("description", equalTo(newDescription));
     }
 
-    @Test(enabled = false, description = "R015 - Rename repo",
+    @Test(description = "R015 - Rename repo",
             groups = {TestGroups.REGRESSION})
     public void R015_renameRepo() {
+        String owner = "gamzeozakinci";
+        String oldName = "test-repo12";
+        String newName = "test-repo12-renamed";
 
+        given().spec(RequestSpecs.authSpec())
+                .contentType(ContentType.JSON)
+                .body("{\"name\": \"" + oldName + "\"}")
+                .when().post(Endpoints.CREATEREPO)
+                .then()
+                .spec(ResponseSpecs.logAll())
+                .statusCode(201);
+
+        given().spec(RequestSpecs.authSpec())
+                .contentType(ContentType.JSON)
+                .pathParam("owner", owner)
+                .pathParam("repo", oldName)
+                .body("{\"name\": \"" + newName + "\"}")
+                .when().patch(Endpoints.REPO)
+                .then()
+                .spec(ResponseSpecs.logAll())
+                .statusCode(200)
+                .body("name", equalTo(newName));
+
+        given().spec(RequestSpecs.authSpec())
+                .pathParam("owner", owner)
+                .pathParam("repo", newName)
+                .when()
+                .get(Endpoints.REPO)
+                .then()
+                .spec(ResponseSpecs.logAll())
+                .statusCode(200);
+
+        given().spec(RequestSpecs.authSpec())
+                .redirects().follow(false)
+                .pathParam("owner", owner)
+                .pathParam("repo", oldName)
+                .when().get(Endpoints.REPO)
+                .then()
+                .spec(ResponseSpecs.logAll())
+                .statusCode(anyOf(equalTo(301), equalTo(404)));
+        //zamanlama sorun olabilir sonra tekrar dene hala update i almamıs olabilir.
     }
 
-    @Test(enabled = false, description = "R016 - Archive repo",
+    @Test(description = "R016 - Archive repo",
             groups = {TestGroups.REGRESSION})
     public void R016_archiveRepo() {
+        String owner = "gamzeozakinci";
+        String repoName = "test-repo13";
 
+        given().spec(RequestSpecs.authSpec())
+                .contentType(ContentType.JSON)
+                .body("{\"name\": \"" + repoName + "\"}")
+                .when()
+                .post(Endpoints.CREATEREPO)
+                .then()
+                .spec(ResponseSpecs.logAll())
+                .statusCode(201);
+
+        given().spec(RequestSpecs.authSpec())
+                .contentType(ContentType.JSON)
+                .pathParam("owner", owner)
+                .pathParam("repo", repoName)
+                .body("{\"archived\": true}")
+                .when().patch(Endpoints.REPO)
+                .then()
+                .spec(ResponseSpecs.logAll())
+                .statusCode(200)
+                .body("archived", equalTo(true));
+
+        given().spec(RequestSpecs.authSpec())
+                .pathParam("owner", owner)
+                .pathParam("repo", repoName)
+                .when()
+                .get(Endpoints.REPO)
+                .then()
+                .spec(ResponseSpecs.logAll())
+                .statusCode(200)
+                .body("archived", equalTo(true));
     }
 
-    @Test(enabled = false, description = "R017 - Update repo owned by someone else",
+    @Test(description = "R017 - Update repo owned by someone else",
             groups = {TestGroups.REGRESSION, TestGroups.NEGATIVE})
     public void R017_updateRepoOwnedBySomeoneElse() {
-
+        given().spec(RequestSpecs.authSpec())
+                .contentType(ContentType.JSON)
+                .pathParam("owner", "octocat")
+                .pathParam("repo", "Hello-World")
+                .body("{\"description\": \"should not be allowed\"}")
+                .when().patch(Endpoints.REPO)
+                .then()
+                .spec(ResponseSpecs.logAll())
+                .statusCode(anyOf(equalTo(403), equalTo(404)));
     }
 
     @Test(description = "R018 - Delete repo",

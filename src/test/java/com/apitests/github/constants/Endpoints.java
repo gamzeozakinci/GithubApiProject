@@ -8,4 +8,6 @@ public class Endpoints {
     public static final String REPOS = "/users/{username}/repos";
     public static final String RATELIMIT = "/rate_limit";
     public static final String CREATEREPO = "/user/repos";
+    public static final String REPO = "/repos/{owner}/{repo}";
+
 }
