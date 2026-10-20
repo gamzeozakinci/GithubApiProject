@@ -2,7 +2,7 @@
 
 API test automation suite for the [GitHub REST API](https://docs.github.com/en/rest), built with REST Assured and TestNG.
 
-> **Status:** work in progress.
+> **Status:** work in progress. 34 test cases are implemented (authentication, rate limit, users and repositories). The remaining areas are planned, see [Test coverage](#test-coverage).
 
 ## Tech stack
 
@@ -12,6 +12,7 @@ API test automation suite for the [GitHub REST API](https://docs.github.com/en/r
 | Maven | Build and dependency management |
 | REST Assured 5.5.6 | HTTP client and response assertions |
 | TestNG 7.11.0 | Test framework |
+| JSON Schema Validator 5.5.6 | Response contract checks |
 | Jackson | Request and response (de)serialization |
 | TestNG reports | Test reporting (Surefire HTML and XML reports) |
 
@@ -24,10 +25,10 @@ src/test/java/com/apitests/github/
 ├── constants/     Endpoint paths and TestNG group names
 ├── specs/         Reusable request and response specifications
 ├── utils/         Test data factory, schema paths
-├── api/           API clients, one per resource (users, repos, issues, ...)
+├── api/           API clients, one per resource (planned)
 ├── models/
-│   ├── request/   Request body models
-│   └── response/  Response models
+│   ├── request/   Request body models (planned)
+│   └── response/  Response models (planned)
 └── tests/         Test classes, one per feature area
 
 src/test/resources/
@@ -36,25 +37,27 @@ src/test/resources/
 └── schemas/       JSON schemas for response validation
 ```
 
-Tests call the `api` layer, which builds requests from `specs`, `constants` and `models`. Test classes contain no raw URLs or JSON strings.
+The tests currently build their requests directly with the shared `RequestSpecs` and `ResponseSpecs` and the paths in `Endpoints`. The `api`, `models`, `config` and `base` packages are in place as placeholders for the next step, which moves repeated requests (for example creating and deleting a repository) into API client classes.
+
+Every test method carries its test case ID in the name and in its `description`, for example `R009_getRepoByOwnerName`. Tests are tagged with the TestNG groups `smoke`, `regression`, `negative` and `contract` (see `TestGroups`).
 
 ## Test coverage
 
-| Area | Test class |
-|------|-----------|
-| Authentication | `AuthenticationTests` |
-| Rate limit | `RateLimitTests` |
-| Users | `UserTests` |
-| Repositories | `RepositoryTests` |
-| Issues | `IssueTests` |
-| Issue comments | `CommentTests` |
-| Labels | `LabelTests` |
-| Repository contents | `ContentTests` |
-| Branches and commits | `BranchTests` |
-| Pull requests | `PullRequestTests` |
-| Search | `SearchTests` |
-| Gists | `GistTests` |
-| Cross-cutting contract checks | `ContractTests` |
+| Area | Test class | Implemented |
+|------|-----------|-------------|
+| Authentication | `AuthenticationTests` | 5 of 5 |
+| Rate limit | `RateLimitTests` | 3 of 3 |
+| Users | `UserTests` | 7 of 7 |
+| Repositories | `RepositoryTests` | 19 of 19 |
+| Issues | `IssueTests` | planned |
+| Issue comments | `CommentTests` | planned |
+| Labels | `LabelTests` | planned |
+| Repository contents | `ContentTests` | planned |
+| Branches and commits | `BranchTests` | planned |
+| Pull requests | `PullRequestTests` | planned |
+| Search | `SearchTests` | planned |
+| Gists | `GistTests` | planned |
+| Cross-cutting contract checks | `ContractTests` | planned |
 
 The full list of user stories and test cases is in the [test plan](docs/GitHub-API-Test-Plan.pdf).
 
@@ -62,7 +65,7 @@ The full list of user stories and test cases is in the [test plan](docs/GitHub-A
 
 - JDK 17 or newer
 - Maven 3.9+
-- A GitHub personal access token with the `repo`, `gist` and `delete_repo` scopes
+- A GitHub personal access token (classic) with the `repo`, `gist` and `delete_repo` scopes
 
 ## Configuration
 
@@ -84,7 +87,24 @@ Non-secret settings (base URI, API version) live in `src/test/resources/config.p
 mvn clean test
 ```
 
-Test reports are written to `target/surefire-reports`.
+Test reports are written to `target/surefire-reports`. Open `emailable-report.html` in a browser for a one-page summary.
+
+A single test can also be started from the IDE with the run icon next to the test method.
+
+## Test data
+
+Most repository tests create a repository in the authenticated account. The names start with `test-repo` or `test_repo`. Only the delete tests (`R018`, `R019`) remove the repository they create, so the other tests leave their repositories behind and they have to be deleted manually until the clean-up is automated. Some tests use fixed repository names, so running them a second time fails with `422` until the repository from the previous run is deleted.
+
+Several tests also read data of the GitHub account `gamzeozakinci` (for example the public repositories used by the pagination tests), so the user tests expect that account to have at least two public repositories.
+
+## Observed API behavior
+
+Things found while writing the tests, confirmed against the live API:
+
+- **Repository names are sanitized.** A name with characters outside letters, digits, `-`, `_` and `.` is accepted with `201`, and a run of invalid characters is replaced by a single hyphen. `test_repo2***` is created as `test_repo2-`, and `test_repo7**** 12 212...... 12` is created as `test_repo7-12-212-12` (`R007`).
+- **Validation errors have two messages.** On `422` the response has a top-level `message` and an `errors` array. The specific reason is in `errors[0].message`, for example `name already exists on this account` (`R005`).
+- **Repository operations are not instant.** Renaming a repository a few seconds after creating it is rejected, sometimes with `422` ("A conflicting repository operation is still in progress") and sometimes with an empty `500`. `R015` therefore retries the rename up to six times, two seconds apart, and still fails if it never returns `200`.
+- **Deprecation headers.** Responses for API version `2022-11-28` carry `Deprecation` and `Sunset` headers (sunset date 10 March 2028).
 
 ## Rate limits
 

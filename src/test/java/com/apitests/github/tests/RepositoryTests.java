@@ -7,6 +7,7 @@ import com.apitests.github.specs.RequestSpecs;
 import com.apitests.github.specs.ResponseSpecs;
 import com.apitests.github.utils.SchemaPaths;
 import io.restassured.http.ContentType;
+import io.restassured.response.Response;
 import org.testng.annotations.Test;
 
 import static io.restassured.RestAssured.given;
@@ -274,26 +275,37 @@ public class RepositoryTests extends BaseTest {
 
     @Test(description = "R015 - Rename repo",
             groups = {TestGroups.REGRESSION})
-    public void R015_renameRepo() {
+    public void R015_renameRepo() throws InterruptedException {
         String owner = "gamzeozakinci";
-        String oldName = "test-repo12";
-        String newName = "test-repo12-renamed";
+        String oldName = "test-repo16";
+        String newName = "test-repo16-renamed";
 
         given().spec(RequestSpecs.authSpec())
                 .contentType(ContentType.JSON)
                 .body("{\"name\": \"" + oldName + "\"}")
-                .when().post(Endpoints.CREATEREPO)
+                .when()
+                .post(Endpoints.CREATEREPO)
                 .then()
                 .spec(ResponseSpecs.logAll())
                 .statusCode(201);
 
-        given().spec(RequestSpecs.authSpec())
-                .contentType(ContentType.JSON)
-                .pathParam("owner", owner)
-                .pathParam("repo", oldName)
-                .body("{\"name\": \"" + newName + "\"}")
-                .when().patch(Endpoints.REPO)
-                .then()
+        Response response = null;
+
+        for (int attempt = 1; attempt <= 6; attempt++) {
+            response = given().spec(RequestSpecs.authSpec())
+                    .contentType(ContentType.JSON)
+                    .pathParam("owner", owner)
+                    .pathParam("repo", oldName)
+                    .body("{\"name\": \"" + newName + "\"}")
+                    .when().patch(Endpoints.REPO);
+
+            if (response.statusCode() == 200) {
+                break;
+            }
+            Thread.sleep(2000);
+        }
+
+        response.then()
                 .spec(ResponseSpecs.logAll())
                 .statusCode(200)
                 .body("name", equalTo(newName));
@@ -314,8 +326,7 @@ public class RepositoryTests extends BaseTest {
                 .when().get(Endpoints.REPO)
                 .then()
                 .spec(ResponseSpecs.logAll())
-                .statusCode(anyOf(equalTo(301), equalTo(404)));
-        //zamanlama sorun olabilir sonra tekrar dene hala update i almamıs olabilir.
+                .statusCode(301);
     }
 
     @Test(description = "R016 - Archive repo",
@@ -396,11 +407,5 @@ public class RepositoryTests extends BaseTest {
                 .spec(ResponseSpecs.logAll())
                 .statusCode(404)
                 .body("message", containsString("Not Found"));
-    }
-
-    @Test(enabled = false, description = "R020 - Delete without delete_repo scope",
-            groups = {TestGroups.REGRESSION, TestGroups.NEGATIVE})
-    public void R020_deleteWithoutDeleteRepoScope() {
-        //baska bir token ile denenecek, delete scope olmayan.
     }
 }
