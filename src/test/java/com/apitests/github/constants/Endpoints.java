@@ -9,5 +9,8 @@ public class Endpoints {
     public static final String RATELIMIT = "/rate_limit";
     public static final String CREATEREPO = "/user/repos";
     public static final String REPO = "/repos/{owner}/{repo}";
+    public static final String ISSUES = "/issues";
+    public static final String REPO_ISSUES = "/repos/{owner}/{repo}/issues";
+    public static final String REPO_ISSUE = "/repos/{owner}/{repo}/issues/{number}";
 
 }
