@@ -6,43 +6,70 @@ import com.apitests.github.constants.Endpoints;
 import com.apitests.github.constants.TestGroups;
 import com.apitests.github.specs.RequestSpecs;
 import com.apitests.github.specs.ResponseSpecs;
+import com.apitests.github.utils.SchemaPaths;
 import io.restassured.http.ContentType;
+import io.restassured.response.Response;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
+import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
+import static org.hamcrest.Matchers.*;
+import static org.testng.AssertJUnit.assertEquals;
 
 public class IssueTests extends BaseTest {
+
+    private final String owner = "gamzeozakinci";
+    private String repoName;
+
+    // GitHub blocks content creation (secondary rate limit) when many repositories are created
+    // in a short time, so the tests share one repository. Only the tests that need an empty
+    // repository (I001, I012) create their own and delete it themselves.
+    @BeforeClass
+    public void createRepo() {
+        repoName = "test-repo-" + System.currentTimeMillis();
+        RepositoryApi.create(repoName).then().statusCode(201);
+    }
+
+    @AfterClass(alwaysRun = true)
+    public void deleteRepo() {
+        RepositoryApi.delete(owner, repoName);
+    }
 
     @Test(description = "I001 - Create issue",
             groups = {TestGroups.SMOKE, TestGroups.REGRESSION})
     public void I001_createIssue() {
-        String repoName = "test_repo4";
-        given()
-                .spec(RequestSpecs.authSpec())
-                .contentType(ContentType.JSON)
-                .pathParam("owner", "gamzeozakinci")
-                .pathParam("repo", repoName)
-                .body("{\"title\": \"Test issue\", \"body\": \"created by test\"}")
-                .when()
-                .post(Endpoints.REPO_ISSUES)
-                .then()
-                .spec(ResponseSpecs.logAll())
-                .statusCode(201)
-                .body("title", equalTo("Test issue"))
-                .body("state", equalTo("open"))
-                .body("number", equalTo(1));
+        String freshRepo = "test-repo-" + System.currentTimeMillis();
+        RepositoryApi.create(freshRepo).then().statusCode(201);
+
+        try {
+            given()
+                    .spec(RequestSpecs.authSpec())
+                    .contentType(ContentType.JSON)
+                    .pathParam("owner", owner)
+                    .pathParam("repo", freshRepo)
+                    .body("{\"title\": \"Test issue\", \"body\": \"created by test\"}")
+                    .when()
+                    .post(Endpoints.REPO_ISSUES)
+                    .then()
+                    .spec(ResponseSpecs.logAll())
+                    .statusCode(201)
+                    .body("title", equalTo("Test issue"))
+                    .body("state", equalTo("open"))
+                    .body("number", equalTo(1));
+        } finally {
+            RepositoryApi.delete(owner, freshRepo);
+        }
     }
 
     @Test(description = "I002 - Create issue without title",
             groups = {TestGroups.SMOKE, TestGroups.REGRESSION, TestGroups.NEGATIVE})
     public void I002_createIssueWithoutTitle() {
-        String repoName = "test_repo4";
         given()
                 .spec(RequestSpecs.authSpec())
                 .contentType(ContentType.JSON)
-                .pathParam("owner", "gamzeozakinci")
+                .pathParam("owner", owner)
                 .pathParam("repo", repoName)
                 .body("{\"body\": \"created by test\"}")
                 .when()
@@ -56,11 +83,10 @@ public class IssueTests extends BaseTest {
     @Test(description = "I003 - Create issue with labels and assignee",
             groups = {TestGroups.REGRESSION})
     public void I003_createIssueWithLabelsAndAssignee() {
-        String repoName = "test_repo4";
         given()
                 .spec(RequestSpecs.authSpec())
                 .contentType(ContentType.JSON)
-                .pathParam("owner", "gamzeozakinci")
+                .pathParam("owner", owner)
                 .pathParam("repo", repoName)
                 .body("{\"title\": \"Issue with labels\", \"labels\": [\"bug\"], \"assignees\": [\"gamzeozakinci\"]}")
                 .when()
@@ -75,11 +101,6 @@ public class IssueTests extends BaseTest {
     @Test(description = "I004 - Get issue by number",
             groups = {TestGroups.SMOKE, TestGroups.REGRESSION})
     public void I004_getIssueByNumber() {
-        String owner = "gamzeozakinci";
-        String repoName = "test-repo4";
-
-        RepositoryApi.create(repoName).then().statusCode(201);
-
         int issueNumber = given()
                 .spec(RequestSpecs.authSpec())
                 .contentType(ContentType.JSON)
@@ -111,8 +132,8 @@ public class IssueTests extends BaseTest {
     public void I005_getNonExistentIssue() {
         given()
                 .spec(RequestSpecs.authSpec())
-                .pathParam("owner", "gamzeozakinci")
-                .pathParam("repo", "GratisProject")
+                .pathParam("owner", owner)
+                .pathParam("repo", repoName)
                 .pathParam("number", 999999)
                 .when()
                 .get(Endpoints.REPO_ISSUE)
@@ -122,15 +143,9 @@ public class IssueTests extends BaseTest {
                 .body("message", equalTo("Not Found"));
     }
 
-
     @Test(description = "I006 - Update title and body",
             groups = {TestGroups.REGRESSION})
     public void I006_updateTitleAndBody() {
-        String owner = "gamzeozakinci";
-        String repoName = "test-repo-" + System.currentTimeMillis();
-
-        RepositoryApi.create(repoName).then().statusCode(201);
-
         int issueNumber = given()
                 .spec(RequestSpecs.authSpec())
                 .contentType(ContentType.JSON)
@@ -169,19 +184,11 @@ public class IssueTests extends BaseTest {
                 .statusCode(200)
                 .body("title", equalTo("new title"))
                 .body("body", equalTo("new body"));
-
-        //sonra logbody ekle
     }
-
 
     @Test(description = "I007 - Close issue",
             groups = {TestGroups.SMOKE, TestGroups.REGRESSION})
     public void I007_closeIssue() {
-        String owner = "gamzeozakinci";
-        String repoName = "test-repo10";
-
-        RepositoryApi.create(repoName).then().statusCode(201);
-
         int issueNumber = given()
                 .spec(RequestSpecs.authSpec())
                 .contentType(ContentType.JSON)
@@ -222,43 +229,344 @@ public class IssueTests extends BaseTest {
                 .body("state", equalTo("closed"));
     }
 
-    @Test(enabled = false, description = "I008 - Reopen issue",
+    @Test(description = "I008 - Reopen issue",
             groups = {TestGroups.REGRESSION})
     public void I008_reopenIssue() {
+        int issueNumber = given()
+                .spec(RequestSpecs.authSpec())
+                .contentType(ContentType.JSON)
+                .pathParam("owner", owner)
+                .pathParam("repo", repoName)
+                .body("{\"title\": \"issue to reopen\"}")
+                .when()
+                .post(Endpoints.REPO_ISSUES)
+                .then()
+                .statusCode(201)
+                .body("state", equalTo("open"))
+                .extract().path("number");
+
+        given()
+                .spec(RequestSpecs.authSpec())
+                .contentType(ContentType.JSON)
+                .pathParam("owner", owner)
+                .pathParam("repo", repoName)
+                .pathParam("number", issueNumber)
+                .body("{\"state\": \"closed\", \"state_reason\": \"completed\"}")
+                .when()
+                .patch(Endpoints.REPO_ISSUE)
+                .then()
+                .spec(ResponseSpecs.logAll())
+                .statusCode(200)
+                .body("state", equalTo("closed"))
+                .body("closed_at", notNullValue());
+
+        given()
+                .spec(RequestSpecs.authSpec())
+                .contentType(ContentType.JSON)
+                .pathParam("owner", owner)
+                .pathParam("repo", repoName)
+                .pathParam("number", issueNumber)
+                .body("{\"state\": \"open\"}")
+                .when()
+                .patch(Endpoints.REPO_ISSUE)
+                .then()
+                .spec(ResponseSpecs.logAll())
+                .statusCode(200)
+                .body("state", equalTo("open"))
+                .body("closed_at", nullValue());
+
+        given()
+                .spec(RequestSpecs.authSpec())
+                .pathParam("owner", owner)
+                .pathParam("repo", repoName)
+                .pathParam("number", issueNumber)
+                .when()
+                .get(Endpoints.REPO_ISSUE)
+                .then()
+                .statusCode(200)
+                .body("state", equalTo("open"));
     }
 
-    @Test(enabled = false, description = "I009 - List open issues",
+    @Test(description = "I009 - List open issues",
             groups = {TestGroups.REGRESSION})
-    public void I009_listOpenIssues() {
+    public void I009_listOpenIssues() throws InterruptedException {
+        String issueTitle = "open issue " + System.currentTimeMillis();
+
+        given()
+                .spec(RequestSpecs.authSpec())
+                .contentType(ContentType.JSON)
+                .pathParam("owner", owner)
+                .pathParam("repo", repoName)
+                .body("{\"title\": \"" + issueTitle + "\", \"body\": \"created by test\"}")
+                .when()
+                .post(Endpoints.REPO_ISSUES)
+                .then()
+                .spec(ResponseSpecs.logAll())
+                .statusCode(201);
+
+        Response openList = null;
+        boolean found = false;
+
+        for (int attempt = 1; attempt <= 6 && !found; attempt++) {
+            openList = given()
+                    .spec(RequestSpecs.authSpec())
+                    .pathParam("owner", owner)
+                    .pathParam("repo", repoName)
+                    .queryParam("state", "open")
+                    .when()
+                    .get(Endpoints.REPO_ISSUES);
+
+            found = openList.statusCode() == 200
+                    && openList.jsonPath().getList("title").contains(issueTitle);
+
+            if (!found) {
+                Thread.sleep(2000);
+            }
+        }
+
+        openList.then()
+                .spec(ResponseSpecs.logAll())
+                .statusCode(200)
+                .body("title", hasItem(issueTitle))
+                .body("state", everyItem(equalTo("open")));
     }
 
-    @Test(enabled = false, description = "I010 - List closed issues",
+    @Test(description = "I010 - List closed issues",
             groups = {TestGroups.REGRESSION})
-    public void I010_listClosedIssues() {
+    public void I010_listClosedIssues() throws InterruptedException {
+        String issueTitle = "closed issue " + System.currentTimeMillis();
+
+        int issueNumber = given()
+                .spec(RequestSpecs.authSpec())
+                .contentType(ContentType.JSON)
+                .pathParam("owner", owner)
+                .pathParam("repo", repoName)
+                .body("{\"title\": \"" + issueTitle + "\"}")
+                .when()
+                .post(Endpoints.REPO_ISSUES)
+                .then()
+                .statusCode(201)
+                .extract().path("number");
+
+        given()
+                .spec(RequestSpecs.authSpec())
+                .contentType(ContentType.JSON)
+                .pathParam("owner", owner)
+                .pathParam("repo", repoName)
+                .pathParam("number", issueNumber)
+                .body("{\"state\": \"closed\", \"state_reason\": \"completed\"}")
+                .when()
+                .patch(Endpoints.REPO_ISSUE)
+                .then()
+                .statusCode(200)
+                .body("state", equalTo("closed"));
+
+        Response closedList = null;
+        boolean found = false;
+
+        for (int attempt = 1; attempt <= 6 && !found; attempt++) {
+            closedList = given()
+                    .spec(RequestSpecs.authSpec())
+                    .pathParam("owner", owner)
+                    .pathParam("repo", repoName)
+                    .queryParam("state", "closed")
+                    .when()
+                    .get(Endpoints.REPO_ISSUES);
+
+            found = closedList.statusCode() == 200
+                    && closedList.jsonPath().getList("title").contains(issueTitle);
+
+            if (!found) {
+                Thread.sleep(2000);
+            }
+        }
+
+        closedList.then()
+                .spec(ResponseSpecs.logAll())
+                .statusCode(200)
+                .body("title", hasItem(issueTitle))
+                .body("state", everyItem(equalTo("closed")));
     }
 
-    @Test(enabled = false, description = "I011 - Filter by label",
+    @Test(description = "I011 - Filter by label",
             groups = {TestGroups.REGRESSION})
-    public void I011_filterByLabel() {
+    public void I011_filterByLabel() throws InterruptedException {
+        String labeledTitle = "with label " + System.currentTimeMillis();
+        String plainTitle = "without label " + System.currentTimeMillis();
+
+        given()
+                .spec(RequestSpecs.authSpec())
+                .contentType(ContentType.JSON)
+                .pathParam("owner", owner)
+                .pathParam("repo", repoName)
+                .body("{\"title\": \"" + labeledTitle + "\", \"labels\": [\"bug\"]}")
+                .when()
+                .post(Endpoints.REPO_ISSUES)
+                .then()
+                .statusCode(201)
+                .body("labels[0].name", equalTo("bug"));
+
+        given()
+                .spec(RequestSpecs.authSpec())
+                .contentType(ContentType.JSON)
+                .pathParam("owner", owner)
+                .pathParam("repo", repoName)
+                .body("{\"title\": \"" + plainTitle + "\"}")
+                .when()
+                .post(Endpoints.REPO_ISSUES)
+                .then()
+                .statusCode(201);
+
+        Response list = null;
+        boolean found = false;
+        for (int attempt = 1; attempt <= 6 && !found; attempt++) {
+            list = given()
+                    .spec(RequestSpecs.authSpec())
+                    .pathParam("owner", owner)
+                    .pathParam("repo", repoName)
+                    .queryParam("labels", "bug")
+                    .when()
+                    .get(Endpoints.REPO_ISSUES);
+
+            found = list.statusCode() == 200
+                    && list.jsonPath().getList("title").contains(labeledTitle);
+            if (!found) {
+                Thread.sleep(2000);
+            }
+        }
+
+        list.then()
+                .spec(ResponseSpecs.logAll())
+                .statusCode(200)
+                .body("title", hasItem(labeledTitle))
+                .body("title", not(hasItem(plainTitle)))
+                .body("labels.name", everyItem(hasItem("bug")));
     }
 
-    @Test(enabled = false, description = "I012 - Issue list excludes nothing created by others in a fresh repo",
+    @Test(description = "I012 - Issue list excludes nothing created by others in a fresh repo",
             groups = {TestGroups.REGRESSION})
-    public void I012_issueListExcludesNothingCreatedByOthersInAFreshRepo() {
+    public void I012_issueListExcludesNothingCreatedByOthersInAFreshRepo() throws InterruptedException {
+        String freshRepo = "test-repo-" + System.currentTimeMillis();
+        RepositoryApi.create(freshRepo).then().statusCode(201);
+
+        try {
+            int createdCount = 3;
+
+            int lastNumber = 0;
+            for (int i = 1; i <= createdCount; i++) {
+                lastNumber = given()
+                        .spec(RequestSpecs.authSpec())
+                        .contentType(ContentType.JSON)
+                        .pathParam("owner", owner)
+                        .pathParam("repo", freshRepo)
+                        .body("{\"title\": \"issue " + i + "\"}")
+                        .when()
+                        .post(Endpoints.REPO_ISSUES)
+                        .then()
+                        .statusCode(201)
+                        .extract().path("number");
+            }
+
+            given()
+                    .spec(RequestSpecs.authSpec())
+                    .contentType(ContentType.JSON)
+                    .pathParam("owner", owner)
+                    .pathParam("repo", freshRepo)
+                    .pathParam("number", lastNumber)
+                    .body("{\"state\": \"closed\"}")
+                    .when()
+                    .patch(Endpoints.REPO_ISSUE)
+                    .then()
+                    .statusCode(200);
+
+            Response list = null;
+            for (int attempt = 1; attempt <= 6; attempt++) {
+                list = given()
+                        .spec(RequestSpecs.authSpec())
+                        .pathParam("owner", owner)
+                        .pathParam("repo", freshRepo)
+                        .queryParam("state", "all")
+                        .when()
+                        .get(Endpoints.REPO_ISSUES);
+
+                if (list.statusCode() == 200 && list.jsonPath().getList("number").size() == createdCount) {
+                    break;
+                }
+                Thread.sleep(2000);
+            }
+
+            list.then()
+                    .spec(ResponseSpecs.logAll())
+                    .statusCode(200)
+                    .body("size()", equalTo(createdCount));
+        } finally {
+            RepositoryApi.delete(owner, freshRepo);
+        }
     }
 
-    @Test(enabled = false, description = "I013 - Create issue without auth",
+    @Test(description = "I013 - Create issue without auth",
             groups = {TestGroups.REGRESSION, TestGroups.NEGATIVE})
     public void I013_createIssueWithoutAuth() {
+        given()
+                .spec(RequestSpecs.publicSpec())
+                .contentType(ContentType.JSON)
+                .pathParam("owner", owner)
+                .pathParam("repo", repoName)
+                .body("{\"title\": \"Test issue\", \"body\": \"created by test\"}")
+                .when()
+                .post(Endpoints.REPO_ISSUES)
+                .then()
+                .spec(ResponseSpecs.logAll())
+                .statusCode(401)
+                .body("message", equalTo("Requires authentication"));
     }
 
-    @Test(enabled = false, description = "I014 - Issue number increments",
+    @Test(description = "I014 - Issue number increments",
             groups = {TestGroups.REGRESSION})
     public void I014_issueNumberIncrements() {
+        int firstNumber = given()
+                .spec(RequestSpecs.authSpec())
+                .contentType(ContentType.JSON)
+                .pathParam("owner", owner)
+                .pathParam("repo", repoName)
+                .body("{\"title\": \"first issue\"}")
+                .when()
+                .post(Endpoints.REPO_ISSUES)
+                .then()
+                .spec(ResponseSpecs.logAll())
+                .statusCode(201)
+                .extract().path("number");
+
+        int secondNumber = given()
+                .spec(RequestSpecs.authSpec())
+                .contentType(ContentType.JSON)
+                .pathParam("owner", owner)
+                .pathParam("repo", repoName)
+                .body("{\"title\": \"second issue\"}")
+                .when()
+                .post(Endpoints.REPO_ISSUES)
+                .then()
+                .spec(ResponseSpecs.logAll())
+                .statusCode(201)
+                .extract().path("number");
+
+        assertEquals(secondNumber, firstNumber + 1);
     }
 
-    @Test(enabled = false, description = "I015 - Response matches issue schema",
+    @Test(description = "I015 - Response matches issue schema",
             groups = {TestGroups.REGRESSION, TestGroups.CONTRACT})
     public void I015_responseMatchesIssueSchema() {
+        given()
+                .spec(RequestSpecs.authSpec())
+                .contentType(ContentType.JSON)
+                .pathParam("owner", owner)
+                .pathParam("repo", repoName)
+                .body("{\"title\": \"Schema issue\", \"body\": \"created by test\"}")
+                .when()
+                .post(Endpoints.REPO_ISSUES)
+                .then()
+                .spec(ResponseSpecs.logAll())
+                .statusCode(201)
+                .body(matchesJsonSchemaInClasspath(SchemaPaths.ISSUE));
     }
 }

@@ -4,9 +4,6 @@ import org.testng.annotations.Test;
 import com.apitests.github.base.BaseTest;
 import com.apitests.github.constants.TestGroups;
 
-/**
- * Covers US-13. Test cases: S001 .. S007.
- */
 public class SearchTests extends BaseTest {
 
     @Test(enabled = false, description = "S001 - Search repositories by keyword",

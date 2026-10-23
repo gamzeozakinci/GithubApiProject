@@ -22,12 +22,22 @@ public class RepositoryApi {
     public static Response create(String name, boolean autoInit) {
         String body = "{\"name\": \"" + name + "\", \"auto_init\": " + autoInit + "}";
 
-        return given()
+        Response response = given()
                 .spec(RequestSpecs.authSpec())
                 .contentType(ContentType.JSON)
                 .body(body)
                 .when()
                 .post(Endpoints.CREATEREPO);
+
+        if (response.statusCode() != 201) {
+            System.out.println("Repository creation failed for '" + name + "': HTTP " + response.statusCode()
+                    + ", retry-after=" + response.getHeader("Retry-After")
+                    + ", ratelimit-remaining=" + response.getHeader("X-RateLimit-Remaining")
+                    + ", ratelimit-resource=" + response.getHeader("X-RateLimit-Resource")
+                    + ", body=" + response.asString());
+        }
+
+        return response;
     }
 
     /**
