@@ -2,7 +2,7 @@
 
 API test automation suite for the [GitHub REST API](https://docs.github.com/en/rest), built with REST Assured and TestNG.
 
-> **Status:** work in progress. 34 test cases are implemented (authentication, rate limit, users and repositories). The remaining areas are planned, see [Test coverage](#test-coverage).
+> **Status:** work in progress. 56 of 101 test cases are implemented (authentication, rate limit, users, repositories, issues and search). The remaining areas are planned, see [Test coverage](#test-coverage).
 
 ## Tech stack
 
@@ -25,7 +25,7 @@ src/test/java/com/apitests/github/
 ├── constants/     Endpoint paths and TestNG group names
 ├── specs/         Reusable request and response specifications
 ├── utils/         Test data factory, schema paths
-├── api/           API clients, one per resource (planned)
+├── api/           API clients, one per resource (RepositoryApi is implemented, the others are planned)
 ├── models/
 │   ├── request/   Request body models (planned)
 │   └── response/  Response models (planned)
@@ -37,7 +37,7 @@ src/test/resources/
 └── schemas/       JSON schemas for response validation
 ```
 
-The tests currently build their requests directly with the shared `RequestSpecs` and `ResponseSpecs` and the paths in `Endpoints`. The `api`, `models`, `config` and `base` packages are in place as placeholders for the next step, which moves repeated requests (for example creating and deleting a repository) into API client classes.
+The tests build their requests with the shared `RequestSpecs` and `ResponseSpecs` and the paths in `Endpoints`. Creating, reading and deleting a repository goes through `RepositoryApi`, which the issue tests use for their test repository. The `models`, `config` and `base` packages are placeholders for the next steps, and the remaining API client classes are still empty.
 
 Every test method carries its test case ID in the name and in its `description`, for example `R009_getRepoByOwnerName`. Tests are tagged with the TestNG groups `smoke`, `regression`, `negative` and `contract` (see `TestGroups`).
 
@@ -49,13 +49,13 @@ Every test method carries its test case ID in the name and in its `description`,
 | Rate limit | `RateLimitTests` | 3 of 3 |
 | Users | `UserTests` | 7 of 7 |
 | Repositories | `RepositoryTests` | 19 of 19 |
-| Issues | `IssueTests` | planned |
+| Issues | `IssueTests` | 15 of 15 |
 | Issue comments | `CommentTests` | planned |
 | Labels | `LabelTests` | planned |
 | Repository contents | `ContentTests` | planned |
 | Branches and commits | `BranchTests` | planned |
 | Pull requests | `PullRequestTests` | planned |
-| Search | `SearchTests` | planned |
+| Search | `SearchTests` | 7 of 7 |
 | Gists | `GistTests` | planned |
 | Cross-cutting contract checks | `ContractTests` | planned |
 
@@ -93,7 +93,10 @@ A single test can also be started from the IDE with the run icon next to the tes
 
 ## Test data
 
-Most repository tests create a repository in the authenticated account. The names start with `test-repo` or `test_repo`. Only the delete tests (`R018`, `R019`) remove the repository they create, so the other tests leave their repositories behind and they have to be deleted manually until the clean-up is automated. Some tests use fixed repository names, so running them a second time fails with `422` until the repository from the previous run is deleted.
+The repository and issue tests create repositories in the authenticated account. The names start with `test-repo` or `test_repo`.
+
+- **Issue tests** create one repository for the whole class (`@BeforeClass`) and delete it afterwards (`@AfterClass`). The two tests that need an empty repository (`I001`, `I012`) create their own and delete it in a `finally` block. The names contain a timestamp, so the tests can be repeated.
+- **Repository tests** do not clean up yet. Only the delete tests (`R018`, `R019`) remove the repository they work on, so the other tests leave their repositories behind and they have to be deleted manually. Some of them use fixed repository names, so running them a second time fails with `422` until the repository from the previous run is deleted.
 
 Several tests also read data of the GitHub account `gamzeozakinci` (for example the public repositories used by the pagination tests), so the user tests expect that account to have at least two public repositories.
 
@@ -104,11 +107,15 @@ Things found while writing the tests, confirmed against the live API:
 - **Repository names are sanitized.** A name with characters outside letters, digits, `-`, `_` and `.` is accepted with `201`, and a run of invalid characters is replaced by a single hyphen. `test_repo2***` is created as `test_repo2-`, and `test_repo7**** 12 212...... 12` is created as `test_repo7-12-212-12` (`R007`).
 - **Validation errors have two messages.** On `422` the response has a top-level `message` and an `errors` array. The specific reason is in `errors[0].message`, for example `name already exists on this account` (`R005`).
 - **Repository operations are not instant.** Renaming a repository a few seconds after creating it is rejected, sometimes with `422` ("A conflicting repository operation is still in progress") and sometimes with an empty `500`. `R015` therefore retries the rename up to six times, two seconds apart, and still fails if it never returns `200`.
+- **Issue lists can lag behind.** Right after creating or closing an issue, the list endpoint can still return an empty array (`state=open` or `state=closed`) although reading the single issue already shows the new state. `I009` to `I012` poll the list up to six times, two seconds apart.
+- **Creating many repositories gets the client blocked.** About ten repositories in a row (one per test, each with a delete) led to `403` with the message "You have exceeded a secondary rate limit and have been temporarily blocked from content creation", while the primary limit was far from used up and no `Retry-After` header was sent. The issue tests therefore share one repository per class.
+- **Search by language is not exact.** A search with `language:java` can return repositories whose own `language` field is `null`. `S002` therefore accepts `Java` or `null` for every result and requires at least one `Java` result.
+- **Search without `q` is rejected.** `GET /search/repositories` without a `q` parameter returns `422` with `errors[0].field = q` and `errors[0].code = missing` (`S004`). A search without matches is not an error, it returns `200` with `total_count: 0` and an empty `items` array (`S005`).
 - **Deprecation headers.** Responses for API version `2022-11-28` carry `Deprecation` and `Sunset` headers (sunset date 10 March 2028).
 
 ## Rate limits
 
-The GitHub REST API limits how many requests a client can send. The suite stays well below these limits, but they matter when you run it repeatedly. Source: [Rate limits for the REST API](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api).
+The GitHub REST API limits how many requests a client can send. The suite stays far below the primary limits, but the secondary limit for content creation was reached once when every test created its own repository (see [Observed API behavior](#observed-api-behavior)), so the limits matter when you run the suite repeatedly. Source: [Rate limits for the REST API](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api).
 
 ### Primary limits (per hour)
 
