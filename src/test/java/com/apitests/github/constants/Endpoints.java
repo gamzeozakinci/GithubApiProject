@@ -11,4 +11,6 @@ public class Endpoints {
     public static final String REPO = "/repos/{owner}/{repo}";
     public static final String REPO_ISSUES = "/repos/{owner}/{repo}/issues";
     public static final String REPO_ISSUE = "/repos/{owner}/{repo}/issues/{number}";
+    public static final String ISSUE_COMMENTS = "/repos/{owner}/{repo}/issues/{number}/comments";
+    public static final String ISSUE_COMMENT = "/repos/{owner}/{repo}/issues/comments/{id}";
 }

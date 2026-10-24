@@ -2,7 +2,7 @@
 
 API test automation suite for the [GitHub REST API](https://docs.github.com/en/rest), built with REST Assured and TestNG.
 
-> **Status:** work in progress. 56 of 101 test cases are implemented (authentication, rate limit, users, repositories, issues and search). The remaining areas are planned, see [Test coverage](#test-coverage).
+63 automated test cases for authentication, rate limit, users, repositories, issues, issue comments and search, see [Test coverage](#test-coverage).
 
 ## Tech stack
 
@@ -20,44 +20,33 @@ API test automation suite for the [GitHub REST API](https://docs.github.com/en/r
 
 ```
 src/test/java/com/apitests/github/
-├── base/          Common setup and teardown (BaseTest)
-├── config/        Configuration and token handling (ConfigManager)
+├── base/          Base class of all test classes (BaseTest)
 ├── constants/     Endpoint paths and TestNG group names
 ├── specs/         Reusable request and response specifications
-├── utils/         Test data factory, schema paths
-├── api/           API clients, one per resource (RepositoryApi is implemented, the others are planned)
-├── models/
-│   ├── request/   Request body models (planned)
-│   └── response/  Response models (planned)
+├── utils/         Paths of the JSON schema files
+├── api/           RepositoryApi: create, read and delete a test repository
 └── tests/         Test classes, one per feature area
 
 src/test/resources/
 ├── testng.xml     Suite definition
-├── config.properties
 └── schemas/       JSON schemas for response validation
 ```
 
-The tests build their requests with the shared `RequestSpecs` and `ResponseSpecs` and the paths in `Endpoints`. Creating, reading and deleting a repository goes through `RepositoryApi`, which the issue tests use for their test repository. The `models`, `config` and `base` packages are placeholders for the next steps, and the remaining API client classes are still empty.
+The tests build their requests with the shared `RequestSpecs` and `ResponseSpecs` and the paths in `Endpoints`. Creating, reading and deleting a repository goes through `RepositoryApi`, which the issue and comment tests use for their test repository.
 
 Every test method carries its test case ID in the name and in its `description`, for example `R009_getRepoByOwnerName`. Tests are tagged with the TestNG groups `smoke`, `regression`, `negative` and `contract` (see `TestGroups`).
 
 ## Test coverage
 
-| Area | Test class | Implemented |
-|------|-----------|-------------|
-| Authentication | `AuthenticationTests` | 5 of 5 |
-| Rate limit | `RateLimitTests` | 3 of 3 |
-| Users | `UserTests` | 7 of 7 |
-| Repositories | `RepositoryTests` | 19 of 19 |
-| Issues | `IssueTests` | 15 of 15 |
-| Issue comments | `CommentTests` | planned |
-| Labels | `LabelTests` | planned |
-| Repository contents | `ContentTests` | planned |
-| Branches and commits | `BranchTests` | planned |
-| Pull requests | `PullRequestTests` | planned |
-| Search | `SearchTests` | 7 of 7 |
-| Gists | `GistTests` | planned |
-| Cross-cutting contract checks | `ContractTests` | planned |
+| Area | Test class | Test cases |
+|------|-----------|------------|
+| Authentication | `AuthenticationTests` | 5 |
+| Rate limit | `RateLimitTests` | 3 |
+| Users | `UserTests` | 7 |
+| Repositories | `RepositoryTests` | 19 |
+| Issues | `IssueTests` | 15 |
+| Issue comments | `CommentTests` | 7 |
+| Search | `SearchTests` | 7 |
 
 The full list of user stories and test cases is in the [test plan](docs/GitHub-API-Test-Plan.pdf).
 
@@ -79,8 +68,6 @@ export GITHUB_TOKEN=<your-token>
 $env:GITHUB_TOKEN = "<your-token>"
 ```
 
-Non-secret settings (base URI, API version) live in `src/test/resources/config.properties`.
-
 ## Running the tests
 
 ```bash
@@ -93,10 +80,10 @@ A single test can also be started from the IDE with the run icon next to the tes
 
 ## Test data
 
-The repository and issue tests create repositories in the authenticated account. The names start with `test-repo` or `test_repo`.
+The repository, issue and comment tests create repositories in the authenticated account. The names start with `test-repo` or `test_repo`.
 
-- **Issue tests** create one repository for the whole class (`@BeforeClass`) and delete it afterwards (`@AfterClass`). The two tests that need an empty repository (`I001`, `I012`) create their own and delete it in a `finally` block. The names contain a timestamp, so the tests can be repeated.
-- **Repository tests** do not clean up yet. Only the delete tests (`R018`, `R019`) remove the repository they work on, so the other tests leave their repositories behind and they have to be deleted manually. Some of them use fixed repository names, so running them a second time fails with `422` until the repository from the previous run is deleted.
+- **Issue tests and comment tests** create one repository for the whole class (`@BeforeClass`) and delete it afterwards (`@AfterClass`). The two issue tests that need an empty repository (`I001`, `I012`) create their own and delete it in a `finally` block. The names contain a timestamp, so the tests can be repeated.
+- **Repository tests** do not clean up after themselves. Only the delete tests (`R018`, `R019`) remove the repository they work on, so the other tests leave their repositories behind and they have to be deleted manually. Some of them use fixed repository names, so running them a second time fails with `422` until the repository from the previous run is deleted.
 
 Several tests also read data of the GitHub account `gamzeozakinci` (for example the public repositories used by the pagination tests), so the user tests expect that account to have at least two public repositories.
 
