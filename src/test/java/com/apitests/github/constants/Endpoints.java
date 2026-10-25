@@ -17,4 +17,7 @@ public class Endpoints {
     public static final String GET_LABEL = "/repos/{owner}/{repo}/labels/{name}";
     public static final String CONTENTS = "/repos/{owner}/{repo}/contents";
     public static final String CONTENT = "/repos/{owner}/{repo}/contents/{path}";
+    public static final String LIST_BRANCHES = "/repos/{owner}/{repo}/branches";
+    public static final String BRANCH = "/repos/{owner}/{repo}/branches/{branch}";
+    public static final String COMMITS = "/repos/{owner}/{repo}/commits";
 }
