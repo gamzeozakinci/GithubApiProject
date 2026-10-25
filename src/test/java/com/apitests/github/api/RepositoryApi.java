@@ -27,7 +27,7 @@ public class RepositoryApi {
                 .contentType(ContentType.JSON)
                 .body(body)
                 .when()
-                .post(Endpoints.CREATEREPO);
+                .post(Endpoints.CREATE_REPO);
 
         if (response.statusCode() != 201) {
             System.out.println("Repository creation failed for '" + name + "': HTTP " + response.statusCode()

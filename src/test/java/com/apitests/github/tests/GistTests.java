@@ -4,9 +4,6 @@ import org.testng.annotations.Test;
 import com.apitests.github.base.BaseTest;
 import com.apitests.github.constants.TestGroups;
 
-/**
- * Covers US-14 (optional extension). Test cases: G001 .. G006.
- */
 public class GistTests extends BaseTest {
 
     @Test(enabled = false, description = "G001 - Create gist",

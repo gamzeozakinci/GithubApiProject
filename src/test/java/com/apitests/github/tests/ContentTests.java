@@ -4,9 +4,6 @@ import org.testng.annotations.Test;
 import com.apitests.github.base.BaseTest;
 import com.apitests.github.constants.TestGroups;
 
-/**
- * Covers US-10. Test cases: F001 .. F008.
- */
 public class ContentTests extends BaseTest {
 
     @Test(enabled = false, description = "F001 - Create file",

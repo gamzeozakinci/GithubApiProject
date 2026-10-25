@@ -24,13 +24,12 @@ public class RepositoryTests extends BaseTest {
                 .contentType(ContentType.JSON)
                 .body("{\"name\": \"test_repo1\"}")
                 .when()
-                .post(Endpoints.CREATEREPO)
+                .post(Endpoints.CREATE_REPO)
                 .then()
                 .spec(ResponseSpecs.logAll())
                 .statusCode(201)
                 .body("name", equalTo("test_repo1"))
                 .body("owner.login", equalTo("gamzeozakinci"));
-
     }
 
     @Test(description = "R002 - Create private repo with description",
@@ -41,7 +40,7 @@ public class RepositoryTests extends BaseTest {
                 .contentType(ContentType.JSON)
                 .body("{\"name\": \"test_repo2\", \"private\": true}")
                 .when()
-                .post(Endpoints.CREATEREPO)
+                .post(Endpoints.CREATE_REPO)
                 .then()
                 .spec(ResponseSpecs.logAll())
                 .statusCode(201)
@@ -57,7 +56,7 @@ public class RepositoryTests extends BaseTest {
                 .contentType(ContentType.JSON)
                 .body("{\"name\": \"" + repoName + "\", \"private\": true, \"auto_init\": true}")
                 .when()
-                .post(Endpoints.CREATEREPO)
+                .post(Endpoints.CREATE_REPO)
                 .then()
                 .spec(ResponseSpecs.logAll())
                 .statusCode(201);
@@ -82,7 +81,7 @@ public class RepositoryTests extends BaseTest {
                 .contentType(ContentType.JSON)
                 .body("{\"private\": true}")
                 .when()
-                .post(Endpoints.CREATEREPO)
+                .post(Endpoints.CREATE_REPO)
                 .then()
                 .spec(ResponseSpecs.logAll())
                 .statusCode(422)
@@ -98,7 +97,7 @@ public class RepositoryTests extends BaseTest {
                 .contentType(ContentType.JSON)
                 .body("{\"name\": \"" + repoName + "\", \"private\": true, \"auto_init\": true}")
                 .when()
-                .post(Endpoints.CREATEREPO)
+                .post(Endpoints.CREATE_REPO)
                 .then()
                 .spec(ResponseSpecs.logAll())
                 .statusCode(422)
@@ -113,7 +112,7 @@ public class RepositoryTests extends BaseTest {
                 .contentType(ContentType.JSON)
                 .body("{\"name\": \"test_repo7\"}")
                 .when()
-                .post(Endpoints.CREATEREPO)
+                .post(Endpoints.CREATE_REPO)
                 .then()
                 .spec(ResponseSpecs.logAll())
                 .statusCode(401)
@@ -129,7 +128,7 @@ public class RepositoryTests extends BaseTest {
                 .contentType(ContentType.JSON)
                 .body("{\"name\": \"test_repo2***\", \"private\": true}")
                 .when()
-                .post(Endpoints.CREATEREPO)
+                .post(Endpoints.CREATE_REPO)
                 .then()
                 .spec(ResponseSpecs.logAll())
                 .statusCode(201);
@@ -144,7 +143,7 @@ public class RepositoryTests extends BaseTest {
                 .contentType(ContentType.JSON)
                 .body("{\"name\": \"test_repo8\"}")
                 .when()
-                .post(Endpoints.CREATEREPO)
+                .post(Endpoints.CREATE_REPO)
                 .then()
                 .spec(ResponseSpecs.logAll())
                 .statusCode(201)
@@ -205,7 +204,7 @@ public class RepositoryTests extends BaseTest {
                 .contentType(ContentType.JSON)
                 .body("{\"name\": \"" + repoName + "\"}")
                 .when()
-                .post(Endpoints.CREATEREPO)
+                .post(Endpoints.CREATE_REPO)
                 .then()
                 .statusCode(201);
 
@@ -215,7 +214,7 @@ public class RepositoryTests extends BaseTest {
                 .queryParam("direction", "desc")
                 .queryParam("per_page", 100)
                 .when()
-                .get(Endpoints.CREATEREPO)
+                .get(Endpoints.CREATE_REPO)
                 .then()
                 .spec(ResponseSpecs.logAll())
                 .statusCode(200)
@@ -230,7 +229,7 @@ public class RepositoryTests extends BaseTest {
                 .queryParam("visibility", "private")
                 .queryParam("per_page", 100)
                 .when()
-                .get(Endpoints.CREATEREPO)
+                .get(Endpoints.CREATE_REPO)
                 .then()
                 .spec(ResponseSpecs.logAll())
                 .statusCode(200)
@@ -248,7 +247,7 @@ public class RepositoryTests extends BaseTest {
         given().spec(RequestSpecs.authSpec())
                 .contentType(ContentType.JSON)
                 .body("{\"name\": \"" + repoName + "\"}")
-                .when().post(Endpoints.CREATEREPO)
+                .when().post(Endpoints.CREATE_REPO)
                 .then().statusCode(201)
                 .spec(ResponseSpecs.logAll());
 
@@ -284,7 +283,7 @@ public class RepositoryTests extends BaseTest {
                 .contentType(ContentType.JSON)
                 .body("{\"name\": \"" + oldName + "\"}")
                 .when()
-                .post(Endpoints.CREATEREPO)
+                .post(Endpoints.CREATE_REPO)
                 .then()
                 .spec(ResponseSpecs.logAll())
                 .statusCode(201);
@@ -339,7 +338,7 @@ public class RepositoryTests extends BaseTest {
                 .contentType(ContentType.JSON)
                 .body("{\"name\": \"" + repoName + "\"}")
                 .when()
-                .post(Endpoints.CREATEREPO)
+                .post(Endpoints.CREATE_REPO)
                 .then()
                 .spec(ResponseSpecs.logAll())
                 .statusCode(201);

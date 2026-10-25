@@ -4,9 +4,6 @@ import org.testng.annotations.Test;
 import com.apitests.github.base.BaseTest;
 import com.apitests.github.constants.TestGroups;
 
-/**
- * Covers US-11. Test cases: H001 .. H007.
- */
 public class BranchTests extends BaseTest {
 
     @Test(enabled = false, description = "H001 - List branches",

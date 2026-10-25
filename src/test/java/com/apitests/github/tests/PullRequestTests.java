@@ -4,9 +4,6 @@ import org.testng.annotations.Test;
 import com.apitests.github.base.BaseTest;
 import com.apitests.github.constants.TestGroups;
 
-/**
- * Covers US-12 (optional extension). Test cases: P001 .. P006.
- */
 public class PullRequestTests extends BaseTest {
 
     @Test(enabled = false, description = "P001 - Open PR",

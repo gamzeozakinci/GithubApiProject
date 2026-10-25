@@ -19,7 +19,7 @@ public class RateLimitTests extends BaseTest {
         given()
                 .spec(RequestSpecs.publicSpec())
                 .when()
-                .get(Endpoints.RATELIMIT)
+                .get(Endpoints.RATE_LIMIT)
                 .then()
                 .spec(ResponseSpecs.logAll())
                 .statusCode(200);
