@@ -2,7 +2,7 @@
 
 API test automation suite for the [GitHub REST API](https://docs.github.com/en/rest), built with REST Assured and TestNG.
 
-63 automated test cases for authentication, rate limit, users, repositories, issues, issue comments and search, see [Test coverage](#test-coverage).
+101 automated test cases for authentication, rate limit, users, repositories, issues, issue comments, labels, repository contents, branches, pull requests, search, gists and cross-cutting contract checks, see [Test coverage](#test-coverage).
 
 ## Tech stack
 
@@ -46,7 +46,14 @@ Every test method carries its test case ID in the name and in its `description`,
 | Repositories | `RepositoryTests` | 19 |
 | Issues | `IssueTests` | 15 |
 | Issue comments | `CommentTests` | 7 |
+| Labels | `LabelTests` | 5 |
+| Repository contents | `ContentTests` | 8 |
+| Branches and commits | `BranchTests` | 7 |
+| Pull requests | `PullRequestTests` | 6 |
 | Search | `SearchTests` | 7 |
+| Gists | `GistTests` | 6 |
+| Cross-cutting contract checks | `ContractTests` | 6 |
+| **Total** | | **101** |
 
 The full list of user stories and test cases is in the [test plan](docs/GitHub-API-Test-Plan.pdf).
 
@@ -80,9 +87,10 @@ A single test can also be started from the IDE with the run icon next to the tes
 
 ## Test data
 
-The repository, issue and comment tests create repositories in the authenticated account. The names start with `test-repo` or `test_repo`.
+Most test classes create repositories in the authenticated account. The names start with `test-repo` or `test_repo`.
 
-- **Issue tests and comment tests** create one repository for the whole class (`@BeforeClass`) and delete it afterwards (`@AfterClass`). The two issue tests that need an empty repository (`I001`, `I012`) create their own and delete it in a `finally` block. The names contain a timestamp, so the tests can be repeated.
+- **Issue, comment, label, content, branch and pull request tests** create one repository for the whole class (`@BeforeClass`) and delete it afterwards (`@AfterClass`). The two issue tests that need an empty repository (`I001`, `I012`) create their own and delete it in a `finally` block. The names contain a timestamp, so the tests can be repeated.
+- **Gist tests** create their own gists and delete them again.
 - **Repository tests** do not clean up after themselves. Only the delete tests (`R018`, `R019`) remove the repository they work on, so the other tests leave their repositories behind and they have to be deleted manually. Some of them use fixed repository names, so running them a second time fails with `422` until the repository from the previous run is deleted.
 
 Several tests also read data of the GitHub account `gamzeozakinci` (for example the public repositories used by the pagination tests), so the user tests expect that account to have at least two public repositories.
@@ -98,6 +106,8 @@ Things found while writing the tests, confirmed against the live API:
 - **Creating many repositories gets the client blocked.** About ten repositories in a row (one per test, each with a delete) led to `403` with the message "You have exceeded a secondary rate limit and have been temporarily blocked from content creation", while the primary limit was far from used up and no `Retry-After` header was sent. The issue tests therefore share one repository per class.
 - **Search by language is not exact.** A search with `language:java` can return repositories whose own `language` field is `null`. `S002` therefore accepts `Java` or `null` for every result and requires at least one `Java` result.
 - **Search without `q` is rejected.** `GET /search/repositories` without a `q` parameter returns `422` with `errors[0].field = q` and `errors[0].code = missing` (`S004`). A search without matches is not an error, it returns `200` with `total_count: 0` and an empty `items` array (`S005`).
+- **Error responses have one shape.** Unknown resources (`404`), missing authentication (`401`) and invalid requests (`422`) all return JSON with a `message` and a `documentation_url`, also for unknown routes (`X003`, `X006`). The `Content-Type` is `application/json; charset=utf-8` for successful and failed responses (`X001`).
+- **Unsupported API versions are rejected.** A request with `X-GitHub-Api-Version: 1999-01-01` returns `400 Bad Request`. The body lists the supported versions, which were `2026-03-10` and `2022-11-28` when the test was written (`X005`).
 - **Deprecation headers.** Responses for API version `2022-11-28` carry `Deprecation` and `Sunset` headers (sunset date 10 March 2028).
 
 ## Rate limits
@@ -111,7 +121,7 @@ The GitHub REST API limits how many requests a client can send. The suite stays 
 | Unauthenticated | 60 requests per hour, per IP address |
 | Authenticated with a personal access token | 5,000 requests per hour |
 
-Tests that use `RequestSpecs.publicSpec()` send unauthenticated requests and count against the 60 requests per hour of your IP address. Tests that use `RequestSpecs.authSpec()` use the 5,000 requests of the token.
+Tests that use `RequestSpecs.publicSpec()` send unauthenticated requests and count against the 60 requests per hour of your IP address. Tests that use `RequestSpecs.authSpec()` use the 5,000 requests of the token. Running the whole suite several times within an hour can use up the 60 unauthenticated requests. The tests that use `publicSpec()` then fail with `403` ("rate limit exceeded") until the hour is over, `x-ratelimit-reset` tells when that is.
 
 ### Response headers
 

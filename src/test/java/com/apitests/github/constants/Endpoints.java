@@ -15,4 +15,6 @@ public class Endpoints {
     public static final String ISSUE_COMMENT = "/repos/{owner}/{repo}/issues/comments/{id}";
     public static final String CREATE_LABEL = "/repos/{owner}/{repo}/labels";
     public static final String GET_LABEL = "/repos/{owner}/{repo}/labels/{name}";
+    public static final String CONTENTS = "/repos/{owner}/{repo}/contents";
+    public static final String CONTENT = "/repos/{owner}/{repo}/contents/{path}";
 }

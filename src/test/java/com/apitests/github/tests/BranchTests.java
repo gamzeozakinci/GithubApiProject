@@ -6,9 +6,11 @@ import com.apitests.github.constants.TestGroups;
 
 public class BranchTests extends BaseTest {
 
-    @Test(enabled = false, description = "H001 - List branches",
+    @Test(description = "H001 - List branches",
             groups = {TestGroups.REGRESSION})
     public void H001_listBranches() {
+
+
     }
 
     @Test(enabled = false, description = "H002 - Get single branch",
