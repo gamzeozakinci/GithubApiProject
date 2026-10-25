@@ -11,4 +11,16 @@ public class ResponseSpecs {
                 .log(LogDetail.ALL)
                 .build();
     }
+
+    public static ResponseSpecification logBody() {
+        return new ResponseSpecBuilder()
+                .log(LogDetail.BODY)
+                .build();
+    }
+
+    public static ResponseSpecification logHeaders() {
+        return new ResponseSpecBuilder()
+                .log(LogDetail.HEADERS)
+                .build();
+    }
 }
