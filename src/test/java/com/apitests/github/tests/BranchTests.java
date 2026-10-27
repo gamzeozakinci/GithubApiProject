@@ -7,6 +7,7 @@ import com.apitests.github.constants.TestGroups;
 import com.apitests.github.specs.RequestSpecs;
 import com.apitests.github.specs.ResponseSpecs;
 import io.restassured.http.ContentType;
+import io.restassured.response.Response;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -113,18 +114,97 @@ public class BranchTests extends BaseTest {
                 .body("[0].sha", equalTo(commitSha));
     }
 
-    @Test(enabled = false, description = "H005 - Create branch via git ref",
+    @Test(description = "H005 - Create branch via git ref",
             groups = {TestGroups.REGRESSION})
     public void H005_createBranchViaGitRef() {
+        String branchName = "feature-" + System.currentTimeMillis();
+        String mainSha = given()
+                .spec(RequestSpecs.authSpec())
+                .pathParam("owner", owner)
+                .pathParam("repo", repoName)
+                .pathParam("branch", "main")
+                .when()
+                .get(Endpoints.BRANCH)
+                .then()
+                .spec(ResponseSpecs.logAll())
+                .statusCode(200)
+                .extract().path("commit.sha");
+
+        given()
+                .spec(RequestSpecs.authSpec())
+                .contentType(ContentType.JSON)
+                .pathParam("owner", owner)
+                .pathParam("repo", repoName)
+                .body("{\"ref\": \"refs/heads/" + branchName + "\", \"sha\": \"" + mainSha + "\"}")
+                .when()
+                .post(Endpoints.GIT_REFS)
+                .then()
+                .spec(ResponseSpecs.logAll())
+                .statusCode(201)
+                .body("ref", equalTo("refs/heads/" + branchName))
+                .body("object.sha", equalTo(mainSha));
     }
 
-    @Test(enabled = false, description = "H006 - Create duplicate ref",
+    @Test(description = "H006 - Create duplicate ref",
             groups = {TestGroups.REGRESSION, TestGroups.NEGATIVE})
     public void H006_createDuplicateRef() {
+        String branchName = "duplicate-" + System.currentTimeMillis();
+        createBranch(branchName).then().statusCode(201);
+
+        createBranch(branchName)
+                .then()
+                .spec(ResponseSpecs.logAll())
+                .statusCode(422)
+                .body("message", equalTo("Reference already exists"));
     }
 
-    @Test(enabled = false, description = "H007 - Delete branch",
+    @Test(description = "H007 - Delete branch",
             groups = {TestGroups.REGRESSION})
     public void H007_deleteBranch() {
+        String branchName = "delete-" + System.currentTimeMillis();
+        createBranch(branchName).then().statusCode(201);
+
+        given()
+                .spec(RequestSpecs.authSpec())
+                .pathParam("owner", owner)
+                .pathParam("repo", repoName)
+                .pathParam("branch", branchName)
+                .when()
+                .delete(Endpoints.GIT_BRANCH_REF)
+                .then()
+                .spec(ResponseSpecs.logAll())
+                .statusCode(204);
+
+        given()
+                .spec(RequestSpecs.authSpec())
+                .pathParam("owner", owner)
+                .pathParam("repo", repoName)
+                .pathParam("branch", branchName)
+                .when()
+                .get(Endpoints.BRANCH)
+                .then()
+                .statusCode(404);
+    }
+
+    private Response createBranch(String branchName) {
+        String mainSha = given()
+                .spec(RequestSpecs.authSpec())
+                .pathParam("owner", owner)
+                .pathParam("repo", repoName)
+                .pathParam("branch", "main")
+                .when()
+                .get(Endpoints.BRANCH)
+                .then()
+                .statusCode(200)
+                .extract().path("commit.sha");
+
+        return given()
+                .spec(RequestSpecs.authSpec())
+                .contentType(ContentType.JSON)
+                .pathParam("owner", owner)
+                .pathParam("repo", repoName)
+                .body("{\"ref\": \"refs/heads/" + branchName + "\", \"sha\": \"" + mainSha + "\"}")
+                .when()
+                .post(Endpoints.GIT_REFS);
     }
 }
