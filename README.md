@@ -30,6 +30,9 @@ src/test/java/com/apitests/github/
 src/test/resources/
 ├── testng.xml     Suite definition
 └── schemas/       JSON schemas for response validation
+
+docs/
+└── GitHub-API-Test-Plan.pdf   User stories and test cases
 ```
 
 The tests build their requests with the shared `RequestSpecs` and `ResponseSpecs` and the paths in `Endpoints`. Creating, reading and deleting a repository goes through `RepositoryApi`, which the issue and comment tests use for their test repository.

@@ -41,7 +41,7 @@ public class LabelTests extends BaseTest {
                 .pathParam("repo", repoName)
                 .body("{\"name\": \"test-label\",  \"color\": \"ff6666\", \"description\": \"test_label description\"}")
                 .when()
-                .post(Endpoints.CREATE_LABEL)
+                .post(Endpoints.LABELS)
                 .then()
                 .spec(ResponseSpecs.logAll())
                 .statusCode(201)
@@ -60,7 +60,7 @@ public class LabelTests extends BaseTest {
                 .pathParam("repo", repoName)
                 .body("{\"name\": \"dup_label\", \"color\": \"ff6666\", \"description\": \"dup_label description\"}")
                 .when()
-                .post(Endpoints.CREATE_LABEL)
+                .post(Endpoints.LABELS)
                 .then()
                 .spec(ResponseSpecs.logAll())
                 .statusCode(201);
@@ -72,7 +72,7 @@ public class LabelTests extends BaseTest {
                 .pathParam("repo", repoName)
                 .body("{\"name\": \"dup_label\", \"color\": \"ff6666\", \"description\": \"dup_label description\"}")
                 .when()
-                .post(Endpoints.CREATE_LABEL)
+                .post(Endpoints.LABELS)
                 .then()
                 .spec(ResponseSpecs.logAll())
                 .statusCode(422)
@@ -90,7 +90,7 @@ public class LabelTests extends BaseTest {
                 .pathParam("repo", repoName)
                 .body("{\"name\": \"invalid_color\", \"color\": \"ff666226\", \"description\": \"invalid_color description\"}")
                 .when()
-                .post(Endpoints.CREATE_LABEL)
+                .post(Endpoints.LABELS)
                 .then()
                 .spec(ResponseSpecs.logAll())
                 .statusCode(422)
@@ -111,7 +111,7 @@ public class LabelTests extends BaseTest {
                 .pathParam("repo", repoName)
                 .body("{\"name\": \"" + labelName1 + "\", \"color\": \"ff6666\", \"description\": \"list label 1\"}")
                 .when()
-                .post(Endpoints.CREATE_LABEL)
+                .post(Endpoints.LABELS)
                 .then()
                 .statusCode(201);
 
@@ -122,7 +122,7 @@ public class LabelTests extends BaseTest {
                 .pathParam("repo", repoName)
                 .body("{\"name\": \"" + labelName2 + "\", \"color\": \"ff6666\", \"description\": \"list label 2\"}")
                 .when()
-                .post(Endpoints.CREATE_LABEL)
+                .post(Endpoints.LABELS)
                 .then()
                 .statusCode(201);
 
@@ -133,7 +133,7 @@ public class LabelTests extends BaseTest {
                 .pathParam("repo", repoName)
                 .body("{\"name\": \"" + labelName3 + "\", \"color\": \"ff6666\", \"description\": \"list label 3\"}")
                 .when()
-                .post(Endpoints.CREATE_LABEL)
+                .post(Endpoints.LABELS)
                 .then()
                 .statusCode(201);
 
@@ -142,7 +142,7 @@ public class LabelTests extends BaseTest {
                 .pathParam("owner", owner)
                 .pathParam("repo", repoName)
                 .when()
-                .get(Endpoints.CREATE_LABEL)
+                .get(Endpoints.LABELS)
                 .then()
                 .spec(ResponseSpecs.logAll())
                 .statusCode(200)
@@ -160,7 +160,7 @@ public class LabelTests extends BaseTest {
                 .pathParam("repo", repoName)
                 .body("{\"name\": \"" + labelName + "\",\"color\": \"ff6666\", \"description\": \"test_label description\"}")
                 .when()
-                .post(Endpoints.CREATE_LABEL)
+                .post(Endpoints.LABELS)
                 .then()
                 .spec(ResponseSpecs.logAll())
                 .statusCode(201);
@@ -171,7 +171,7 @@ public class LabelTests extends BaseTest {
                 .pathParam("repo", repoName)
                 .pathParam("name", labelName)
                 .when()
-                .delete(Endpoints.GET_LABEL)
+                .delete(Endpoints.LABEL)
                 .then()
                 .spec(ResponseSpecs.logAll())
                 .statusCode(204);
@@ -182,7 +182,7 @@ public class LabelTests extends BaseTest {
                 .pathParam("repo", repoName)
                 .pathParam("name", labelName)
                 .when()
-                .get(Endpoints.GET_LABEL)
+                .get(Endpoints.LABEL)
                 .then()
                 .spec(ResponseSpecs.logAll())
                 .statusCode(404);
@@ -200,7 +200,7 @@ public class LabelTests extends BaseTest {
                 .pathParam("repo", repoName)
                 .body("{\"name\": \"" + labelName + "\", \"color\": \"ff6666\", \"description\": \"old description\"}")
                 .when()
-                .post(Endpoints.CREATE_LABEL)
+                .post(Endpoints.LABELS)
                 .then()
                 .statusCode(201);
 
@@ -212,7 +212,7 @@ public class LabelTests extends BaseTest {
                 .pathParam("name", labelName)
                 .body("{\"color\": \"00ff00\", \"description\": \"new description\"}")
                 .when()
-                .patch(Endpoints.GET_LABEL)
+                .patch(Endpoints.LABEL)
                 .then()
                 .spec(ResponseSpecs.logAll())
                 .statusCode(200)
@@ -226,7 +226,7 @@ public class LabelTests extends BaseTest {
                 .pathParam("repo", repoName)
                 .pathParam("name", labelName)
                 .when()
-                .get(Endpoints.GET_LABEL)
+                .get(Endpoints.LABEL)
                 .then()
                 .statusCode(200)
                 .body("color", equalTo("00ff00"))

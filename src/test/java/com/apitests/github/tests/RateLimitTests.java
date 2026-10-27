@@ -8,7 +8,7 @@ import com.apitests.github.specs.ResponseSpecs;
 import org.testng.annotations.Test;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 import static org.testng.Assert.assertTrue;
 
 public class RateLimitTests extends BaseTest {
