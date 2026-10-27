@@ -12,7 +12,7 @@ The tests call the live GitHub REST API with a personal access token and **creat
 
 - **Use a dedicated test account**, or a token that only has the scopes the suite needs. The `delete_repo` scope lets a token delete repositories, so never run the suite with the token of an account whose repositories you care about.
 - **Run it sparingly.** The tests run one at a time and stay far below GitHub's rate limits (see [Rate limits](#rate-limits)), but please do not run the suite in a loop, and respect the GitHub [Acceptable Use Policies](https://docs.github.com/en/site-policy/acceptable-use-policies/github-acceptable-use-policies).
-- **Clean up after the repository tests.** They leave `test-repo` and `test_repo` repositories behind, see [Test data](#test-data).
+- **Check for leftovers.** The tests delete the repositories they create, but an interrupted run can leave `test-repo` or `test_repo` repositories in the account, see [Test data](#test-data).
 
 ## Tech stack
 
