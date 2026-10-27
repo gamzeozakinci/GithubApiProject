@@ -4,16 +4,16 @@ API test automation suite for the [GitHub REST API](https://docs.github.com/en/r
 
 96 automated test cases for authentication, rate limit, users, repositories, issues, issue comments, labels, repository contents, branches, search, gists and cross-cutting contract checks, see [Test coverage](#test-coverage).
 
-## ⚠️ Responsible use
-
-This project is for **educational and portfolio purposes only**. It is an independent project and is **not affiliated with, endorsed by or sponsored by GitHub**.
-
-The tests call the live GitHub REST API with a personal access token and **create, change and delete real resources** (repositories, issues, comments, labels, files, branches and gists) in the account that owns the token:
-
-- **Use a dedicated test account**, or a token that only has the scopes the suite needs. The `delete_repo` scope lets a token delete repositories, so never run the suite with the token of an account whose repositories you care about.
-- **Run it sparingly.** The tests run one at a time and stay far below GitHub's rate limits (see [Rate limits](#rate-limits)), but please do not run the suite in a loop, and respect the GitHub [Acceptable Use Policies](https://docs.github.com/en/site-policy/acceptable-use-policies/github-acceptable-use-policies).
-- **Clean up after the repository tests.** They leave `test-repo` and `test_repo` repositories behind, see [Test data](#test-data).
-
+## ⚠️ Responsible use
+
+This project is for **educational and portfolio purposes only**. It is an independent project and is **not affiliated with, endorsed by or sponsored by GitHub**.
+
+The tests call the live GitHub REST API with a personal access token and **create, change and delete real resources** (repositories, issues, comments, labels, files, branches and gists) in the account that owns the token:
+
+- **Use a dedicated test account**, or a token that only has the scopes the suite needs. The `delete_repo` scope lets a token delete repositories, so never run the suite with the token of an account whose repositories you care about.
+- **Run it sparingly.** The tests run one at a time and stay far below GitHub's rate limits (see [Rate limits](#rate-limits)), but please do not run the suite in a loop, and respect the GitHub [Acceptable Use Policies](https://docs.github.com/en/site-policy/acceptable-use-policies/github-acceptable-use-policies).
+- **Clean up after the repository tests.** They leave `test-repo` and `test_repo` repositories behind, see [Test data](#test-data).
+
 ## Tech stack
 
 | Tool | Purpose |
