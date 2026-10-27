@@ -2,7 +2,7 @@
 
 API test automation suite for the [GitHub REST API](https://docs.github.com/en/rest), built with REST Assured and TestNG.
 
-101 automated test cases for authentication, rate limit, users, repositories, issues, issue comments, labels, repository contents, branches, pull requests, search, gists and cross-cutting contract checks, see [Test coverage](#test-coverage).
+96 automated test cases for authentication, rate limit, users, repositories, issues, issue comments, labels, repository contents, branches, search, gists and cross-cutting contract checks, see [Test coverage](#test-coverage).
 
 ## Tech stack
 
@@ -46,14 +46,13 @@ Every test method carries its test case ID in the name and in its `description`,
 | Repositories | `RepositoryTests` | 19 |
 | Issues | `IssueTests` | 15 |
 | Issue comments | `CommentTests` | 7 |
-| Labels | `LabelTests` | 5 |
+| Labels | `LabelTests` | 6 |
 | Repository contents | `ContentTests` | 8 |
 | Branches and commits | `BranchTests` | 7 |
-| Pull requests | `PullRequestTests` | 6 |
 | Search | `SearchTests` | 7 |
 | Gists | `GistTests` | 6 |
 | Cross-cutting contract checks | `ContractTests` | 6 |
-| **Total** | | **101** |
+| **Total** | | **96** |
 
 The full list of user stories and test cases is in the [test plan](docs/GitHub-API-Test-Plan.pdf).
 
@@ -89,7 +88,7 @@ A single test can also be started from the IDE with the run icon next to the tes
 
 Most test classes create repositories in the authenticated account. The names start with `test-repo` or `test_repo`.
 
-- **Issue, comment, label, content, branch and pull request tests** create one repository for the whole class (`@BeforeClass`) and delete it afterwards (`@AfterClass`). The two issue tests that need an empty repository (`I001`, `I012`) create their own and delete it in a `finally` block. The names contain a timestamp, so the tests can be repeated.
+- **Issue, comment, label, content and branch tests** create one repository for the whole class (`@BeforeClass`) and delete it afterwards (`@AfterClass`). The two issue tests that need an empty repository (`I001`, `I012`) create their own and delete it in a `finally` block. The names contain a timestamp, so the tests can be repeated.
 - **Gist tests** create their own gists and delete them again.
 - **Repository tests** do not clean up after themselves. Only the delete tests (`R018`, `R019`) remove the repository they work on, so the other tests leave their repositories behind and they have to be deleted manually. Some of them use fixed repository names, so running them a second time fails with `422` until the repository from the previous run is deleted.
 

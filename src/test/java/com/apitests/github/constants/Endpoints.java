@@ -22,4 +22,6 @@ public class Endpoints {
     public static final String COMMITS = "/repos/{owner}/{repo}/commits";
     public static final String GIT_REFS = "/repos/{owner}/{repo}/git/refs";
     public static final String GIT_BRANCH_REF = "/repos/{owner}/{repo}/git/refs/heads/{branch}";
+    public static final String GISTS = "/gists";
+    public static final String GIST = "/gists/{id}";
 }
