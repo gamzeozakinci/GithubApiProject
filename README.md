@@ -93,9 +93,9 @@ Most test classes create repositories in the authenticated account. The names st
 
 - **Issue, comment, label, content and branch tests** create one repository for the whole class (`@BeforeClass`) and delete it afterwards (`@AfterClass`). The two issue tests that need an empty repository (`I001`, `I012`) create their own and delete it in a `finally` block. The names contain a timestamp, so the tests can be repeated.
 - **Gist tests** create their own gists and delete them again.
-- **Repository tests** do not clean up after themselves. Only the delete tests (`R018`, `R019`) remove the repository they work on, so the other tests leave their repositories behind and they have to be deleted manually. Some of them use fixed repository names, so running them a second time fails with `422` until the repository from the previous run is deleted.
+- **Repository tests** create one private repository for the whole class for the tests that only read or update a repository (`R009`, `R011` to `R014`). Every other test creates its own repository with a unique name and deletes it again in a `finally` block, so the tests can be repeated.
 
-Several tests also read data of the GitHub account `gamzeozakinci` (for example the public repositories used by the pagination tests), so the user tests expect that account to have at least two public repositories.
+No test depends on repositories that already exist in the account. The tests that list public repositories of a user and paginate them (`U003` to `U006`) use the public GitHub account `octocat` instead.
 
 ## Observed API behavior
 

@@ -13,6 +13,9 @@ import static org.testng.Assert.assertNotEquals;
 
 public class UserTests extends BaseTest {
 
+    // A stable public account, so the repository list tests do not depend on repositories of the test account.
+    private static final String PUBLIC_REPOS_USER = "octocat";
+
     @Test(description = "U001 - Get existing user",
             groups = {TestGroups.SMOKE, TestGroups.REGRESSION})
     public void U001_getExistingUser() {
@@ -47,7 +50,7 @@ public class UserTests extends BaseTest {
     public void U003_listPublicReposOfAUser() {
         given()
                 .spec(RequestSpecs.authSpec())
-                .pathParam("username", owner)
+                .pathParam("username", PUBLIC_REPOS_USER)
                 .when()
                 .get(Endpoints.REPOS)
                 .then()
@@ -62,7 +65,7 @@ public class UserTests extends BaseTest {
     public void U004_paginationWithPerPage() {
         given()
                 .spec(RequestSpecs.authSpec())
-                .pathParam("username", owner)
+                .pathParam("username", PUBLIC_REPOS_USER)
                 .queryParam("per_page", 2)
                 .when()
                 .get(Endpoints.REPOS)
@@ -85,7 +88,7 @@ public class UserTests extends BaseTest {
     private long getFirstRepoId(int page) {
         return given()
                 .spec(RequestSpecs.publicSpec())
-                .pathParam("username", owner)
+                .pathParam("username", PUBLIC_REPOS_USER)
                 .queryParam("per_page", 1)
                 .queryParam("page", page)
                 .when()
@@ -101,7 +104,7 @@ public class UserTests extends BaseTest {
     public void U006_linkHeaderExposesPagination() {
         given()
                 .spec(RequestSpecs.publicSpec())
-                .pathParam("username", owner)
+                .pathParam("username", PUBLIC_REPOS_USER)
                 .queryParam("per_page", 1)
                 .when()
                 .get(Endpoints.REPOS)
