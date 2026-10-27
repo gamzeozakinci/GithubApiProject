@@ -24,7 +24,7 @@ src/test/java/com/apitests/github/
 ├── constants/     Endpoint paths and TestNG group names
 ├── specs/         Reusable request and response specifications
 ├── utils/         Paths of the JSON schema files
-├── api/           RepositoryApi: create, read and delete a test repository
+├── api/           RepositoryApi: create and delete a test repository
 └── tests/         Test classes, one per feature area
 
 src/test/resources/
@@ -35,7 +35,7 @@ docs/
 └── GitHub-API-Test-Plan.pdf   User stories and test cases
 ```
 
-The tests build their requests with the shared `RequestSpecs` and `ResponseSpecs` and the paths in `Endpoints`. Creating, reading and deleting a repository goes through `RepositoryApi`, which the issue and comment tests use for their test repository.
+The tests build their requests with the shared `RequestSpecs` and `ResponseSpecs` and the paths in `Endpoints`. Creating and deleting a repository goes through `RepositoryApi`, which the issue, comment, label, content and branch tests use for their test repository.
 
 Every test method carries its test case ID in the name and in its `description`, for example `R009_getRepoByOwnerName`. Tests are tagged with the TestNG groups `smoke`, `regression`, `negative` and `contract` (see `TestGroups`).
 

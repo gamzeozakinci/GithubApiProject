@@ -18,7 +18,7 @@ public class UserTests extends BaseTest {
     public void U001_getExistingUser() {
         given()
                 .spec(RequestSpecs.authSpec())
-                .pathParam("username", "gamzeozakinci")
+                .pathParam("username", owner)
                 .when()
                 .get(Endpoints.USER_BY_NAME)
                 .then()
@@ -47,7 +47,7 @@ public class UserTests extends BaseTest {
     public void U003_listPublicReposOfAUser() {
         given()
                 .spec(RequestSpecs.authSpec())
-                .pathParam("username", "gamzeozakinci")
+                .pathParam("username", owner)
                 .when()
                 .get(Endpoints.REPOS)
                 .then()
@@ -62,7 +62,7 @@ public class UserTests extends BaseTest {
     public void U004_paginationWithPerPage() {
         given()
                 .spec(RequestSpecs.authSpec())
-                .pathParam("username", "gamzeozakinci")
+                .pathParam("username", owner)
                 .queryParam("per_page", 2)
                 .when()
                 .get(Endpoints.REPOS)
@@ -85,7 +85,7 @@ public class UserTests extends BaseTest {
     private long getFirstRepoId(int page) {
         return given()
                 .spec(RequestSpecs.publicSpec())
-                .pathParam("username", "gamzeozakinci")
+                .pathParam("username", owner)
                 .queryParam("per_page", 1)
                 .queryParam("page", page)
                 .when()
@@ -101,7 +101,7 @@ public class UserTests extends BaseTest {
     public void U006_linkHeaderExposesPagination() {
         given()
                 .spec(RequestSpecs.publicSpec())
-                .pathParam("username", "gamzeozakinci")
+                .pathParam("username", owner)
                 .queryParam("per_page", 1)
                 .when()
                 .get(Endpoints.REPOS)
@@ -117,7 +117,7 @@ public class UserTests extends BaseTest {
     public void U007_conditionalRequestWithETag() {
         String etag = given()
                 .spec(RequestSpecs.publicSpec())
-                .pathParam("username", "gamzeozakinci")
+                .pathParam("username", owner)
                 .when()
                 .get(Endpoints.USER_BY_NAME)
                 .then()
@@ -127,7 +127,7 @@ public class UserTests extends BaseTest {
 
         given()
                 .spec(RequestSpecs.publicSpec())
-                .pathParam("username", "gamzeozakinci")
+                .pathParam("username", owner)
                 .header("If-None-Match", etag)
                 .when()
                 .get(Endpoints.USER_BY_NAME)

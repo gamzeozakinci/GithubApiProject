@@ -41,18 +41,6 @@ public class RepositoryApi {
     }
 
     /**
-     * GET /repos/{owner}/{repo}.
-     */
-    public static Response get(String owner, String repo) {
-        return given()
-                .spec(RequestSpecs.authSpec())
-                .pathParam("owner", owner)
-                .pathParam("repo", repo)
-                .when()
-                .get(Endpoints.REPO);
-    }
-
-    /**
      * DELETE /repos/{owner}/{repo}. Needs a token with the delete_repo scope.
      */
     public static Response delete(String owner, String repo) {

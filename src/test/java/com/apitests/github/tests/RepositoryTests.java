@@ -64,7 +64,7 @@ public class RepositoryTests extends BaseTest {
         //check auto_init
         given()
                 .spec(RequestSpecs.authSpec())
-                .pathParam("owner", "gamzeozakinci")
+                .pathParam("owner", owner)
                 .pathParam("repo", repoName)
                 .when()
                 .get("/repos/{owner}/{repo}/contents/README.md")
@@ -132,7 +132,6 @@ public class RepositoryTests extends BaseTest {
                 .then()
                 .spec(ResponseSpecs.logAll())
                 .statusCode(201);
-        //repo oluşturuyor ama isimdeki * kldırıp - koyuyor sonra bak
     }
 
     @Test(description = "R008 - Response matches repo schema",
@@ -156,7 +155,7 @@ public class RepositoryTests extends BaseTest {
         String repoName = "GratisProject";
         given()
                 .spec(RequestSpecs.authSpec())
-                .pathParam("owner", "gamzeozakinci")
+                .pathParam("owner", owner)
                 .pathParam("repo", repoName)
                 .when()
                 .get("/repos/{owner}/{repo}")
@@ -170,7 +169,7 @@ public class RepositoryTests extends BaseTest {
     public void R010_getNonExistentRepo() {
         given()
                 .spec(RequestSpecs.authSpec())
-                .pathParam("owner", "gamzeozakinci")
+                .pathParam("owner", owner)
                 .pathParam("repo", "nonexistRepo")
                 .when()
                 .get("/repos/{owner}/{repo}")
@@ -184,8 +183,8 @@ public class RepositoryTests extends BaseTest {
             groups = {TestGroups.REGRESSION, TestGroups.NEGATIVE})
     public void R011_getPrivateRepoWithoutAuth() {
         given()
-                .spec(RequestSpecs.authSpec())
-                .pathParam("owner", "gamzeozakinci")
+                .spec(RequestSpecs.publicSpec())
+                .pathParam("owner", owner)
                 .pathParam("repo", "test_repo3")
                 .when()
                 .get("/repos/{owner}/{repo}")
@@ -240,7 +239,6 @@ public class RepositoryTests extends BaseTest {
     @Test(description = "R014 - Update description",
             groups = {TestGroups.SMOKE, TestGroups.REGRESSION})
     public void R014_updateDescription() {
-        String owner = "gamzeozakinci";
         String repoName = "test-repo10";
         String newDescription = "updated description";
 
@@ -275,7 +273,6 @@ public class RepositoryTests extends BaseTest {
     @Test(description = "R015 - Rename repo",
             groups = {TestGroups.REGRESSION})
     public void R015_renameRepo() throws InterruptedException {
-        String owner = "gamzeozakinci";
         String oldName = "test-repo16";
         String newName = "test-repo16-renamed";
 
@@ -331,7 +328,6 @@ public class RepositoryTests extends BaseTest {
     @Test(description = "R016 - Archive repo",
             groups = {TestGroups.REGRESSION})
     public void R016_archiveRepo() {
-        String owner = "gamzeozakinci";
         String repoName = "test-repo13";
 
         given().spec(RequestSpecs.authSpec())
@@ -384,7 +380,7 @@ public class RepositoryTests extends BaseTest {
     public void R018_deleteRepo() {
         given()
                 .spec(RequestSpecs.authSpec())
-                .pathParam("owner", "gamzeozakinci")
+                .pathParam("owner", owner)
                 .pathParam("repo", "test_repo2")
                 .when()
                 .delete("/repos/{owner}/{repo}")
@@ -398,7 +394,7 @@ public class RepositoryTests extends BaseTest {
     public void R019_deleteAlreadyDeletedRepo() {
         given()
                 .spec(RequestSpecs.authSpec())
-                .pathParam("owner", "gamzeozakinci")
+                .pathParam("owner", owner)
                 .pathParam("repo", "test_repo2")
                 .when()
                 .delete("/repos/{owner}/{repo}")

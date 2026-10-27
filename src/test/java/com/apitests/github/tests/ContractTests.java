@@ -18,7 +18,7 @@ public class ContractTests extends BaseTest {
     public void X001_contentType() {
         given()
                 .spec(RequestSpecs.publicSpec())
-                .pathParam("username", "gamzeozakinci")
+                .pathParam("username", owner)
                 .when()
                 .get(Endpoints.USER_BY_NAME)
                 .then()
@@ -46,7 +46,7 @@ public class ContractTests extends BaseTest {
 
         Response response = given()
                 .spec(RequestSpecs.publicSpec())
-                .pathParam("username", "gamzeozakinci")
+                .pathParam("username", owner)
                 .when()
                 .get(Endpoints.USER_BY_NAME);
 

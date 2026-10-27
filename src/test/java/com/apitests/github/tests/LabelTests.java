@@ -16,11 +16,9 @@ import static org.hamcrest.Matchers.*;
 
 public class LabelTests extends BaseTest {
 
-    private final String owner = "gamzeozakinci";
     private String repoName;
 
-
-    @BeforeClass
+    @BeforeClass(alwaysRun = true)
     public void setUp() {
         repoName = "test-repo-" + System.currentTimeMillis();
         RepositoryApi.create(repoName).then().statusCode(201);

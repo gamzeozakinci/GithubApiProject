@@ -19,10 +19,9 @@ import static org.hamcrest.Matchers.*;
 
 public class BranchTests extends BaseTest {
 
-    private final String owner = "gamzeozakinci";
     private String repoName;
 
-    @BeforeClass
+    @BeforeClass(alwaysRun = true)
     public void setUp() {
         repoName = "test-repo-" + System.currentTimeMillis();
         RepositoryApi.create(repoName, true).then().statusCode(201);

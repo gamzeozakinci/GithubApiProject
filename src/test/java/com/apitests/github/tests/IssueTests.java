@@ -20,13 +20,12 @@ import static org.testng.AssertJUnit.assertEquals;
 
 public class IssueTests extends BaseTest {
 
-    private final String owner = "gamzeozakinci";
     private String repoName;
 
     // GitHub blocks content creation (secondary rate limit) when many repositories are created
     // in a short time, so the tests share one repository. Only the tests that need an empty
     // repository (I001, I012) create their own and delete it themselves.
-    @BeforeClass
+    @BeforeClass(alwaysRun = true)
     public void createRepo() {
         repoName = "test-repo-" + System.currentTimeMillis();
         RepositoryApi.create(repoName).then().statusCode(201);

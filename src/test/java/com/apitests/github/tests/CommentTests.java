@@ -16,11 +16,10 @@ import static org.hamcrest.Matchers.*;
 
 public class CommentTests extends BaseTest {
 
-    private final String owner = "gamzeozakinci";
     private String repoName;
     private int issueNumber;
 
-    @BeforeClass
+    @BeforeClass(alwaysRun = true)
     public void setUp() {
         repoName = "test-repo-" + System.currentTimeMillis();
         RepositoryApi.create(repoName).then().statusCode(201);

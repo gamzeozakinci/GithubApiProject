@@ -30,7 +30,7 @@ public class RateLimitTests extends BaseTest {
     public void L002_rateLimitHeadersPresentOnNormalResponses() {
         given()
                 .spec(RequestSpecs.publicSpec())
-                .pathParam("username", "gamzeozakinci")
+                .pathParam("username", owner)
                 .queryParam("per_page", 1)
                 .when()
                 .get(Endpoints.REPOS)
@@ -52,7 +52,7 @@ public class RateLimitTests extends BaseTest {
     private int getUsedRateLimit() {
         String used = given()
                 .spec(RequestSpecs.publicSpec())
-                .pathParam("username", "gamzeozakinci")
+                .pathParam("username", owner)
                 .when()
                 .get(Endpoints.REPOS)
                 .then()
