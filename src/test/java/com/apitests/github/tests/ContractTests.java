@@ -112,8 +112,7 @@ public class ContractTests extends BaseTest {
             groups = {TestGroups.NEGATIVE, TestGroups.CONTRACT})
     public void X005_wrongAPIVersionHeader() {
         given()
-                .spec(RequestSpecs.authSpec())
-                .header("X-GitHub-Api-Version", "1999-01-01")
+                .spec(RequestSpecs.authSpec("1999-01-01"))
                 .when()
                 .get(Endpoints.USER)
                 .then()

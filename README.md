@@ -11,7 +11,7 @@ This project is for **educational and portfolio purposes only**. It is an indepe
 The tests call the live GitHub REST API with a personal access token and **create, change and delete real resources** (repositories, issues, comments, labels, files, branches and gists) in the account that owns the token:
 
 - **Use a dedicated test account**, or a token that only has the scopes the suite needs. The `delete_repo` scope lets a token delete repositories, so never run the suite with the token of an account whose repositories you care about.
-- **Run it sparingly.** The tests run one at a time and stay far below GitHub's rate limits (see [Rate limits](#rate-limits)), but please do not run the suite in a loop, and respect the GitHub [Acceptable Use Policies](https://docs.github.com/en/site-policy/acceptable-use-policies/github-acceptable-use-policies).
+- **Run it sparingly.** The tests run one at a time and stay far below the primary rate limits of GitHub, but creating many repositories in a short time can trigger a secondary rate limit (see [Rate limits](#rate-limits)). Please do not run the suite in a loop, and respect the GitHub [Acceptable Use Policies](https://docs.github.com/en/site-policy/acceptable-use-policies/github-acceptable-use-policies).
 - **Check for leftovers.** The tests delete the repositories they create, but an interrupted run can leave `test-repo` or `test_repo` repositories in the account, see [Test data](#test-data).
 
 ## Tech stack
@@ -68,6 +68,27 @@ Every test method carries its test case ID in the name and in its `description`,
 | **Total** | | **96** |
 
 The full list of user stories and test cases is in the [test plan](docs/GitHub-API-Test-Plan.pdf).
+
+## Test strategy
+
+**What is tested.** Each area has positive tests (the request works and the response is correct) and negative tests (invalid input, missing authentication, unknown resources). Negative tests check the status code and the error message, for example `422` with `name already exists on this account`. Contract tests check the shape of the API rather than a feature: JSON schemas for users, repositories and issues, the `Content-Type` header, the `Link` header for pagination, `ETag` with a `304` answer and the error body (`message` and `documentation_url`).
+
+**Test groups.** Every test carries at least one TestNG group, and each group has its own suite file:
+
+| Group | Purpose |
+|-------|---------|
+| `smoke` | Quick check that the main flows work |
+| `regression` | Almost everything, to run before a change is accepted |
+| `negative` | All error cases |
+| `contract` | Response structure, headers and schemas |
+
+**Proving the result.** A status code alone is not enough for requests that change data. Tests read the resource again afterwards: an update is followed by a `GET` that shows the new value, and a delete is followed by a `GET` that returns `404`.
+
+**Independent tests.** No test depends on another test or on data that already exists in the account. Each class creates its own repository (or each test its own resource) with a unique, timestamped name and removes it again, so the suite can be repeated and the tests can run in any order.
+
+**Checked against the real API.** The expected results were confirmed against the live API and corrected where the first assumption was wrong, for example a private repository requested without a token answers `404`. What was found on the way is written down in [Observed API behavior](#observed-api-behavior).
+
+**Careful with GitHub.** Every request sends `Accept: application/vnd.github+json` and `X-GitHub-Api-Version: 2022-11-28`. Tests run one after another, repository requests wait a second between each other and tests share a repository where they can, to stay away from the secondary rate limit (see [Rate limits](#rate-limits)).
 
 ## Prerequisites
 
@@ -196,3 +217,7 @@ GitHub responds with `403` or `429`:
 - If `x-ratelimit-remaining` is `0`, wait until the time in `x-ratelimit-reset`.
 - If a `retry-after` header is present, wait that many seconds.
 - Do not keep sending requests while rate limited, GitHub may block the client.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
