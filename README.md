@@ -13,8 +13,7 @@ API test automation suite for the [GitHub REST API](https://docs.github.com/en/r
 | REST Assured 5.5.6 | HTTP client and response assertions |
 | TestNG 7.11.0 | Test framework |
 | JSON Schema Validator 5.5.6 | Response contract checks |
-| Jackson | Request and response (de)serialization |
-| TestNG reports | Test reporting (Surefire HTML and XML reports) |
+| ExtentReports 5.1.2 | HTML test report, written by a TestNG listener |
 
 ## Project structure
 
@@ -23,12 +22,13 @@ src/test/java/com/apitests/github/
 ├── base/          Base class of all test classes (BaseTest)
 ├── constants/     Endpoint paths and TestNG group names
 ├── specs/         Reusable request and response specifications
-├── utils/         Paths of the JSON schema files
+├── utils/         Paths of the JSON schema files, ExtentTestListener (HTML report)
 ├── api/           RepositoryApi: create and delete a test repository
 └── tests/         Test classes, one per feature area
 
 src/test/resources/
-├── testng.xml     Suite definition
+├── testng-smoke.xml, testng-regression.xml,
+│   testng-negative.xml, testng-contract.xml   Suite definitions, one per test group
 └── schemas/       JSON schemas for response validation
 
 docs/
@@ -69,6 +69,8 @@ The full list of user stories and test cases is in the [test plan](docs/GitHub-A
 
 The token is read from the `GITHUB_TOKEN` environment variable. It is never stored in the repository.
 
+The tests run against the account that owns the token. Its name is read once from `GET /user` (see `BaseTest`), so nothing has to be configured besides the token.
+
 ```bash
 # Linux / macOS
 export GITHUB_TOKEN=<your-token>
@@ -79,13 +81,35 @@ $env:GITHUB_TOKEN = "<your-token>"
 
 ## Running the tests
 
+The tests are grouped into suites, one per TestNG group. The suite is chosen with the `suite` property, `smoke` is the default:
+
 ```bash
-mvn clean test
+mvn test                      # smoke
+mvn test -Dsuite=regression
+mvn test -Dsuite=negative
+mvn test -Dsuite=contract
 ```
 
-Test reports are written to `target/surefire-reports`. Open `emailable-report.html` in a browser for a one-page summary.
+| Suite | Tests | Content |
+|-------|-------|---------|
+| `smoke` | 21 | Quick check of the main flows |
+| `regression` | 90 | Almost all tests |
+| `negative` | 29 | Error cases (4xx responses) |
+| `contract` | 13 | Response structure, headers and schemas |
 
-A single test can also be started from the IDE with the run icon next to the test method.
+A test can belong to several groups, so the numbers add up to more than 96.
+
+From the IDE, right-click one of the `src/test/resources/testng-*.xml` files and run it. The run icon next to a single test method does not use the suite file, so it does not produce the HTML report.
+
+### Reports
+
+Each run writes an ExtentReports page to `target/extent-report-<suite>.html`, for example `target/extent-report-smoke.html`. Open it in a browser to see every test with its description, groups, status and failure message, plus the API address, suite, Java version and operating system of the run.
+
+The Surefire XML file (`target/surefire-reports/TEST-TestSuite.xml`) is written next to it for CI tools. The default TestNG HTML reports are switched off in `pom.xml`, so the ExtentReports page is the only report to look at.
+
+### Too many requests
+
+The `regression` suite runs almost all tests and creates many repositories in a short time. GitHub can then block content creation for a while (secondary rate limit, `403`), see [Rate limits](#rate-limits). If that happens, wait and run the suites or single test classes one after another instead of everything at once.
 
 ## Test data
 
@@ -95,13 +119,13 @@ Most test classes create repositories in the authenticated account. The names st
 - **Gist tests** create their own gists and delete them again.
 - **Repository tests** create one private repository for the whole class for the tests that only read or update a repository (`R009`, `R011` to `R014`). Every other test creates its own repository with a unique name and deletes it again in a `finally` block, so the tests can be repeated.
 
-No test depends on repositories that already exist in the account. The tests that list public repositories of a user and paginate them (`U003` to `U006`) use the public GitHub account `octocat` instead.
+No test depends on repositories that already exist in the account, and every test works with the account of the token. The tests that list public repositories of a user and paginate them (`U003` to `U006`) use the public GitHub account `octocat` instead.
 
 ## Observed API behavior
 
 Things found while writing the tests, confirmed against the live API:
 
-- **Repository names are sanitized.** A name with characters outside letters, digits, `-`, `_` and `.` is accepted with `201`, and a run of invalid characters is replaced by a single hyphen. `test_repo2***` is created as `test_repo2-`, and `test_repo7**** 12 212...... 12` is created as `test_repo7-12-212-12` (`R007`).
+- **Repository names are sanitized.** A name with characters outside letters, digits, `-`, `_` and `.` is accepted with `201`, and a run of invalid characters is replaced by a single hyphen. `test_repo7***1793111862330` is created as `test_repo7-1793111862330` (`R007`).
 - **Validation errors have two messages.** On `422` the response has a top-level `message` and an `errors` array. The specific reason is in `errors[0].message`, for example `name already exists on this account` (`R005`).
 - **Repository operations are not instant.** Renaming a repository a few seconds after creating it is rejected, sometimes with `422` ("A conflicting repository operation is still in progress") and sometimes with an empty `500`. `R015` therefore retries the rename up to six times, two seconds apart, and still fails if it never returns `200`.
 - **Issue lists can lag behind.** Right after creating or closing an issue, the list endpoint can still return an empty array (`state=open` or `state=closed`) although reading the single issue already shows the new state. `I009` to `I012` poll the list up to six times, two seconds apart.

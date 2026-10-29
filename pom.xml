@@ -16,8 +16,15 @@
                 <version>3.5.2</version>
                 <configuration>
                     <suiteXmlFiles>
-                        <suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
+                        <suiteXmlFile>src/test/resources/testng-${suite}.xml</suiteXmlFile>
                     </suiteXmlFiles>
+                    <!-- No default TestNG HTML reports, the ExtentReports page is the report. The XML files stay for CI tools. -->
+                    <properties>
+                        <property>
+                            <name>usedefaultlisteners</name>
+                            <value>false</value>
+                        </property>
+                    </properties>
                 </configuration>
             </plugin>
         </plugins>
@@ -27,6 +34,8 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- Test suite to run: smoke (default), regression, negative or contract, for example: mvn test -Dsuite=contract -->
+        <suite>smoke</suite>
     </properties>
 
     <dependencies>
@@ -66,6 +75,7 @@
             <groupId>com.aventstack</groupId>
             <artifactId>extentreports</artifactId>
             <version>5.1.2</version>
+            <scope>test</scope>
         </dependency>
 
         <!-- Source: https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->

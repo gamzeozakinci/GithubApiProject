@@ -87,14 +87,14 @@ public class IssueTests extends BaseTest {
                 .contentType(ContentType.JSON)
                 .pathParam("owner", owner)
                 .pathParam("repo", repoName)
-                .body("{\"title\": \"Issue with labels\", \"labels\": [\"bug\"], \"assignees\": [\"gamzeozakinci\"]}")
+                .body("{\"title\": \"Issue with labels\", \"labels\": [\"bug\"], \"assignees\": [\"" + owner + "\"]}")
                 .when()
                 .post(Endpoints.REPO_ISSUES)
                 .then()
                 .spec(ResponseSpecs.logAll())
                 .statusCode(201)
                 .body("labels[0].name", equalTo("bug"))
-                .body("assignee.login", equalTo("gamzeozakinci"));
+                .body("assignee.login", equalTo(owner));
     }
 
     @Test(description = "I004 - Get issue by number",

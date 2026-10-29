@@ -24,6 +24,10 @@ public class ExtentTestListener implements ITestListener {
 
         extent = new ExtentReports();
         extent.attachReporter(spark);
+        extent.setSystemInfo("API", "https://api.github.com");
+        extent.setSystemInfo("Suite", suiteName);
+        extent.setSystemInfo("Java", System.getProperty("java.version"));
+        extent.setSystemInfo("OS", System.getProperty("os.name"));
     }
 
     @Override
