@@ -9,6 +9,8 @@ public class RequestSpecs {
     private static final String API_VERSION = "2022-11-28";
 
     public static RequestSpecification publicSpec() {
+        pause();
+
         return new RequestSpecBuilder()
                 .setBaseUri("https://api.github.com")
                 .addHeader("Accept", ACCEPT)
@@ -24,6 +26,8 @@ public class RequestSpecs {
      * Authenticated spec with a chosen API version, to test how the API reacts to other versions.
      */
     public static RequestSpecification authSpec(String apiVersion) {
+        pause();
+
         String token = System.getenv("GITHUB_TOKEN");
 
         if (token == null || token.isBlank()) {
@@ -36,5 +40,14 @@ public class RequestSpecs {
                 .addHeader("X-GitHub-Api-Version", apiVersion)
                 .addHeader("Authorization", "Bearer " + token)
                 .build();
+    }
+
+    // GitHub asks for at least one second between requests to stay away from the secondary rate limit.
+    private static void pause() {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 }

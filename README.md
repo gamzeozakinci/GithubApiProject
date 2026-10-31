@@ -88,7 +88,7 @@ The full list of user stories and test cases is in the [test plan](docs/GitHub-A
 
 **Checked against the real API.** The expected results were confirmed against the live API and corrected where the first assumption was wrong, for example a private repository requested without a token answers `404`. What was found on the way is written down in [Observed API behavior](#observed-api-behavior).
 
-**Careful with GitHub.** Every request sends `Accept: application/vnd.github+json` and `X-GitHub-Api-Version: 2022-11-28`. Tests run one after another, repository requests wait a second between each other and tests share a repository where they can, to stay away from the secondary rate limit (see [Rate limits](#rate-limits)).
+**Careful with GitHub.** Every request sends `Accept: application/vnd.github+json` and `X-GitHub-Api-Version: 2022-11-28`. Tests run one after another. Every request waits one second first, as GitHub recommends (`RequestSpecs`), and tests share a repository where they can, to stay away from the secondary rate limit (see [Rate limits](#rate-limits)).
 
 ## Prerequisites
 
@@ -140,7 +140,7 @@ The Surefire XML file (`target/surefire-reports/TEST-TestSuite.xml`) is written 
 
 ### Too many requests
 
-The `regression` suite runs almost all tests and creates many repositories in a short time. GitHub can then block content creation for a while (secondary rate limit, `403`), see [Rate limits](#rate-limits). If that happens, wait and run the suites or single test classes one after another instead of everything at once.
+The `regression` suite runs almost all tests and creates many repositories in a short time. GitHub can then block content creation for a while (secondary rate limit, `403`), see [Rate limits](#rate-limits). Every request already waits one second (see [Secondary limits](#secondary-limits)), but that does not rule out the block. If it happens, wait and run the suites or single test classes one after another instead of everything at once.
 
 ## Test data
 
@@ -160,7 +160,7 @@ Things found while writing the tests, confirmed against the live API:
 - **Validation errors have two messages.** On `422` the response has a top-level `message` and an `errors` array. The specific reason is in `errors[0].message`, for example `name already exists on this account` (`R005`).
 - **Repository operations are not instant.** Renaming a repository a few seconds after creating it is rejected, sometimes with `422` ("A conflicting repository operation is still in progress") and sometimes with an empty `500`. `R015` therefore retries the rename up to six times, two seconds apart, and still fails if it never returns `200`.
 - **Issue lists can lag behind.** Right after creating or closing an issue, the list endpoint can still return an empty array (`state=open` or `state=closed`) although reading the single issue already shows the new state. `I009` to `I012` poll the list up to six times, two seconds apart.
-- **Creating many repositories gets the client blocked.** About ten repositories in a row (one per test, each with a delete) led to `403` with the message "You have exceeded a secondary rate limit and have been temporarily blocked from content creation", while the primary limit was far from used up and no `Retry-After` header was sent. The issue tests therefore share one repository per class.
+- **Creating many repositories gets the client blocked.** About ten repositories in a row (one per test, each with a delete) led to `403` with the message "You have exceeded a secondary rate limit and have been temporarily blocked from content creation", while the primary limit was far from used up and no `Retry-After` header was sent. The test classes therefore share one repository where they can, and every request waits one second first (see [Secondary limits](#secondary-limits)). Creating many repositories in a short time can still trigger the limit.
 - **Search by language is not exact.** A search with `language:java` can return repositories whose own `language` field is `null`. `S002` therefore accepts `Java` or `null` for every result and requires at least one `Java` result.
 - **Search without `q` is rejected.** `GET /search/repositories` without a `q` parameter returns `422` with `errors[0].field = q` and `errors[0].code = missing` (`S004`). A search without matches is not an error, it returns `200` with `total_count: 0` and an empty `items` array (`S005`).
 - **Error responses have one shape.** Unknown resources (`404`), missing authentication (`401`) and invalid requests (`422`) all return JSON with a `message` and a `documentation_url`, also for unknown routes (`X003`, `X006`). The `Content-Type` is `application/json; charset=utf-8` for successful and failed responses (`X001`).
@@ -204,7 +204,7 @@ GitHub also applies secondary limits to protect the service. Documented examples
 - No more than 900 points per minute for a REST endpoint (most `GET` requests cost 1 point, most `POST`, `PATCH`, `PUT` and `DELETE` requests cost 5 points).
 - No more than 80 content-creating requests per minute and 500 per hour.
 
-Creating and deleting repositories, issues and comments are write requests, so the suite runs its tests sequentially and does not use parallel execution.
+Creating and deleting repositories, issues and comments are write requests, so the suite runs its tests sequentially and does not use parallel execution. GitHub also recommends to [wait at least one second between write requests](https://docs.github.com/en/rest/using-the-rest-api/best-practices-for-using-the-rest-api#pause-between-mutative-requests). `RequestSpecs` therefore waits one second before every request, reads included, so a suite run takes longer than the plain request time. `regression` takes the longest.
 
 ### Search limits
 

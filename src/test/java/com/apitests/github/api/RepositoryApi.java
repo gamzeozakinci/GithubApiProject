@@ -33,11 +33,8 @@ public class RepositoryApi {
 
     /**
      * POST /user/repos with a body written by the caller.
-     * GitHub asks to wait at least one second between write requests to avoid the secondary rate limit.
      */
     public static Response createWithBody(String body) {
-        pause();
-
         Response response = given()
                 .spec(RequestSpecs.authSpec())
                 .contentType(ContentType.JSON)
@@ -60,21 +57,11 @@ public class RepositoryApi {
      * DELETE /repos/{owner}/{repo}. Needs a token with the delete_repo scope.
      */
     public static Response delete(String owner, String repo) {
-        pause();
-
         return given()
                 .spec(RequestSpecs.authSpec())
                 .pathParam("owner", owner)
                 .pathParam("repo", repo)
                 .when()
                 .delete(Endpoints.REPO);
-    }
-
-    private static void pause() {
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
     }
 }
